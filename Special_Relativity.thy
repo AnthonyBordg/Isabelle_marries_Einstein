@@ -70,7 +70,7 @@ lemma vector_4 [simp]:
   unfolding vector_def 
   by auto
 
-lemma invar_0:
+lemma invar_1:
   fixes v:: "real" and u w::"real^4"
   assumes "v\<^sup>2 < 1"
   shows "interval u w = interval (boost_1 u v) (boost_1 w v)"
@@ -81,6 +81,57 @@ proof-
 + (w $ 2 - u $ 2)\<^sup>2 
 + (w $ 3 - u $ 3)\<^sup>2"
     by (simp add: interval_def boost_1_def diff_add_eq diff_diff_eq2)
+  then have f1:"interval (boost_1 u v) (boost_1 w v) =
+-((w $ 4 - v * w $ 1 - u $ 4 + v * u $ 1) / sqrt(1 - v\<^sup>2))\<^sup>2 
++ ((w $ 1 - v * w $ 4 - u $ 1 + v * u $ 4) / sqrt(1 - v\<^sup>2))\<^sup>2 
++ (w $ 2 - u $ 2)\<^sup>2 
++ (w $ 3 - u $ 3)\<^sup>2"
+    by (simp add: add_divide_distrib diff_divide_distrib)
+  have f2:"1 - v\<^sup>2 \<ge> 0"
+    using assms 
+    by simp 
+  from f1 f2 have "interval (boost_1 u v) (boost_1 w v) =
+1/(1 - v\<^sup>2) * ((w $ 1 - v * w $ 4 - u $ 1 + v * u $ 4)\<^sup>2 -(w $ 4 - v * w $ 1 - u $ 4 + v * u $ 1)\<^sup>2)
++ (w $ 2 - u $ 2)\<^sup>2
++ (w $ 3 - u $ 3)\<^sup>2"
+    by (simp add: diff_divide_distrib power_divide)
+  then have "interval (boost_1 u v) (boost_1 w v) =
+1/(1 - v\<^sup>2) * ((w $ 1 - u $ 1 - v * (w $ 4 - u $ 4))\<^sup>2 - (w $ 4 - u $ 4 - v * (w $ 1 - u $ 1))\<^sup>2)
++ (w $ 2 - u $ 2)\<^sup>2
++ (w $ 3 - u $ 3)\<^sup>2"
+    apply (simp add: right_diff_distrib')
+    by smt
+  then have "interval (boost_1 u v) (boost_1 w v) =
+1/(1 - v\<^sup>2) * ((w $ 1 - u $ 1)\<^sup>2 - 2 * v * (w $ 1 - u $ 1) * (w $ 4 - u $ 4) + v\<^sup>2 * (w $ 4 - u $ 4)\<^sup>2
+             - (w $ 4 - u $ 4)\<^sup>2 + 2 * v * (w $ 4 - u $ 4) * (w $ 1 - u $ 1) - v\<^sup>2 * (w $ 1 - u $ 1)\<^sup>2)
++ (w $ 2 - u $ 2)\<^sup>2
++ (w $ 3 - u $ 3)\<^sup>2"
+    apply (simp add: power2_diff power_mult_distrib)
+    by (metis (no_types, hide_lams) mult.assoc mult.commute mult.left_commute right_diff_distrib_numeral)
+  then have f2:"interval (boost_1 u v) (boost_1 w v) = 
+1/(1 - v\<^sup>2) * ((w $ 1 - u $ 1)\<^sup>2 + v\<^sup>2 * (w $ 4 - u $ 4)\<^sup>2 - (w $ 4 - u $ 4)\<^sup>2 - v\<^sup>2 * (w $ 1 - u $ 1)\<^sup>2)
++ (w $ 2 - u $ 2)\<^sup>2
++ (w $ 3 - u $ 3)\<^sup>2"
+    by simp
+  have f3:"(w $ 1 - u $ 1)\<^sup>2 - v\<^sup>2 * (w $ 1 - u $ 1)\<^sup>2 = (w $ 1 - u $ 1)\<^sup>2 * (1 - v\<^sup>2)"
+    by (simp add: right_diff_distrib)
+  have f4:"v\<^sup>2 * (w $ 4 - u $ 4)\<^sup>2 - (w $ 4 - u $ 4)\<^sup>2 = -(w $ 4 - u $ 4)\<^sup>2 * (1 - v\<^sup>2)"
+    by (simp add: right_diff_distrib)
+  from f2 f3 f4 have "interval (boost_1 u v) (boost_1 w v) = 
+1/(1 - v\<^sup>2) * (- (w $ 4 - u $ 4)\<^sup>2 * (1 - v\<^sup>2) + (w $ 1 - u $ 1)\<^sup>2 * (1 - v\<^sup>2))
++ (w $ 2 - u $ 2)\<^sup>2
++ (w $ 3 - u $ 3)\<^sup>2"
+    by simp
+  then have "interval (boost_1 u v) (boost_1 w v) = 
+1/(1 - v\<^sup>2) * (1 - v\<^sup>2) * (- (w $ 4 - u $ 4)\<^sup>2 + (w $ 1 - u $ 1)\<^sup>2)
++ (w $ 2 - u $ 2)\<^sup>2
++ (w $ 3 - u $ 3)\<^sup>2"
+    using ring_distribs(2) Groups.mult_ac
+    by (metis (no_types, hide_lams))
+  thus ?thesis
+    using assms interval_def[of u w] 
+    by simp
+qed
 
 
 lemma invar_2:
