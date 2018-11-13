@@ -5,7 +5,7 @@ email: apdb3@cam.ac.uk
 Date: October 2018 
 *)
 
-theory Special_Relativity
+theory Interval
 imports
   Main
   "HOL-Analysis.Analysis"
