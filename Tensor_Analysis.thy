@@ -122,8 +122,17 @@ definition scaleR_one_form :: "real \<Rightarrow> one_form \<Rightarrow> one_for
 "scaleR_one_form r f \<equiv> Abs_one_form (\<lambda>v. r * f(v))"
 
 instance
-proof
-  show "\<And>a b c. a + b + c = a + (b + c)"
+proof 
+  show "\<And>u v w::one_form. u + v + w = u + (v + w)"
+  proof-
+    fix u v w::"one_form"
+    have "(u + v + w) x = (u + (v + w)) x" for x::"real^4"
+      using plus_one_form_def Rep_one_form one_form_to_fun_def semiring_normalization_rules(25)
+      by (metis (mono_tags, lifting) Abs_one_form_inverse islinear_plus_one_form mem_Collect_eq)
+    thus "u + v + w = u + (v + w)"
+      by (metis Rep_one_form_inverse ext one_form_to_fun_def)
+  qed
+
         
 
 end
