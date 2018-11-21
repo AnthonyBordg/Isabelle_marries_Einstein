@@ -7,12 +7,11 @@ Date: November 2018
 
 theory Tensor_Analysis
 imports
-  Main
-  HOL.Real_Vector_Spaces
   "HOL-Analysis.Analysis"
+  VectorSpace.VectorSpace
 begin
 
-text \<open>The (0,1) tensors: one-forms\<close>
+section \<open>The (0,1) Tensors: One-Forms\<close>
 
 text 
 \<open>
@@ -250,6 +249,51 @@ proof
 qed
       
 end
+
+section \<open>Components of a One-Form on a Basis\<close>
+
+text 
+\<open>
+We prove that real^4 is a (real) vector space using the notion of vector space in the theory
+VectorSpace of Holden Lee. That way one can use notions like span, linear independence and basis
+introduced in that theory.  
+\<close>
+
+definition real4_add :: "[real^4, real^4] \<Rightarrow> real^4" where
+"real4_add x y \<equiv> vector [x $ 1 + y $ 1, x $ 2 + y $ 2, x $ 3 + y $ 3, x $ 4 + y $ 4]"
+
+definition real4_zero :: "real^4" where
+"real4_zero \<equiv> vector [0, 0, 0, 0]"
+
+definition real4_monoid :: "(_, _) ring_scheme" where
+"real4_monoid \<equiv> \<lparr>carrier = UNIV::(real^4) set, mult = real4_add, one = real4_zero, 
+  zero = undefined, add = undefined\<rparr>"
+
+interpretation isabelian_monoid_real4 : abelian_monoid "real4_monoid" sorry
+
+interpretation isabelian_group_real4 : abelian_group "real4_monoid" sorry
+
+definition real_ring :: "(_, _) ring_scheme" where
+"real_ring \<equiv> \<lparr>carrier = UNIV::real set, mult = ( * ), one = 1, zero = 0, add = (+)\<rparr>"
+
+interpretation iscring_real_ring : cring "real_ring" sorry
+
+definition real4_smult :: "[real, real^4] \<Rightarrow> real^4" where
+"real4_smult r x \<equiv> vector [r * x $ 1, r * x $ 2, r * x $ 3, r * x $ 4]"
+
+definition real4_module :: "(_, _, _) module_scheme" where
+"real4_module \<equiv> \<lparr>carrier = UNIV::(real^4) set, mult = real4_add, one = real4_zero, 
+  zero = undefined, add = undefined, smult = real4_smult\<rparr>"
+
+interpretation ismodule_real4 : module "real_ring" "real4_module" sorry
+
+interpretation isdomain : domain "real_ring" sorry
+
+interpretation isfield : field "real_ring" sorry
+
+interpretation isvecspace_real4 : vectorspace "real_ring" "real4_module" sorry
+
+
 
 
 end
