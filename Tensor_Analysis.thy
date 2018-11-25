@@ -293,7 +293,58 @@ interpretation isfield : field "real_ring" sorry
 
 interpretation isvecspace_real4 : vectorspace "real_ring" "real4_module" sorry
 
+text 
+\<open>
+Since for the components of a vector, vector [], one starts counting from 1, we adopt the same
+convention for counting the vectors of a given basis. But it is odd from the mathematician point 
+of view (usually a mathematician starts counting from 0). 
+\<close>
 
+definition vec_basis1 :: "real^4" ("e\<^sub>1") where
+"vec_basis1 \<equiv> vector [1, 0, 0, 0]"
 
+definition vec_basis2 :: "real^4" ("e\<^sub>2") where
+"vec_basis2 \<equiv> vector [0, 1, 0, 0]"
+
+definition vec_basis3 :: "real^4" ("e\<^sub>3") where
+"vec_basis3 \<equiv> vector [0, 0, 1, 0]"
+
+definition vec_basis4 :: "real^4" ("e\<^sub>4") where
+"vec_basis4 \<equiv> vector [0, 0, 0, 1]"
+
+definition basis1 :: "(real^4) set" ("\<O>") where
+"basis1 \<equiv> {e\<^sub>1, e\<^sub>2, e\<^sub>3, e\<^sub>4}"
+
+lemma isbasis_basis1 :
+  shows "isvecspace_real4.basis \<O>" sorry
+
+text
+\<open>
+Now, one considers the situation where a second frame of reference \<O>' moves with 
+velocity v \<le> 1 (c = 1) in the x direction relative to the first frame \<O>. Then, one applies the Lorentz 
+transformation to get a second basis.
+\<close>
+
+definition lorentz_factor :: "real \<Rightarrow> real" ("\<gamma>(_)") where
+"lorentz_factor v \<equiv> 1/sqrt(1 - v\<^sup>2)"
+
+definition vec_basis1' :: "real \<Rightarrow> real^4" ("e\<^sub>1' (_)") where
+"vec_basis1' v \<equiv> vector [\<gamma>(v), v * \<gamma>(v), 0 ,0]"
+
+definition vec_basis2' :: "real \<Rightarrow> real^4" ("e\<^sub>2' (_)") where
+"vec_basis2' v \<equiv> vector [v * \<gamma>(v), \<gamma>(v) , 0, 0]"
+
+definition vec_basis3' :: "real \<Rightarrow> real^4" ("e\<^sub>3' (_)") where
+"vec_basis3' v \<equiv> vector [0, 0, 1, 0]"
+
+definition vec_basis4' :: "real \<Rightarrow> real^4" ("e\<^sub>4' (_)") where
+"vec_basis4' v \<equiv> vector [0, 0, 0, 1]"
+
+definition basis1' :: "real \<Rightarrow> (real^4) set" ("\<O>' (_)") where
+"basis1' v \<equiv> {e\<^sub>1'(v), e\<^sub>2'(v), e\<^sub>3'(v), e\<^sub>4'(v)}"
+
+lemma isbasis_basis1' :
+  fixes v :: real
+  shows "isvecspace_real4.basis \<O>'(v)" sorry
 
 end
