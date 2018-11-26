@@ -328,7 +328,7 @@ transformation to get a second basis.
 definition lorentz_factor :: "real \<Rightarrow> real" ("\<gamma>(_)") where
 "lorentz_factor v \<equiv> 1/sqrt(1 - v\<^sup>2)"
 
-definition vec_basis1' :: "real \<Rightarrow> real^4" ("e\<^sub>1' (_)") where
+definition vec_basis1' :: "real \<Rightarrow> real^4" ("e\<^sub>1'") where
 "vec_basis1' v \<equiv> vector [\<gamma>(v), v * \<gamma>(v), 0 ,0]"
 
 definition vec_basis2' :: "real \<Rightarrow> real^4" ("e\<^sub>2' (_)") where
@@ -346,5 +346,63 @@ definition basis1' :: "real \<Rightarrow> (real^4) set" ("\<O>' (_)") where
 lemma isbasis_basis1' :
   fixes v :: real
   shows "isvecspace_real4.basis \<O>'(v)" sorry
+
+text 
+\<open>
+We define the components of a one_form on a given basis as the real numbers obtained from
+the application of the one_form to the basis vectors.
+\<close>
+
+definition comp1_one_form :: "one_form \<Rightarrow> real" ("_\<^sub>1") where
+"comp1_one_form f \<equiv> f(e\<^sub>1)"
+
+definition comp1'_one_form :: "real \<Rightarrow> one_form \<Rightarrow> real" ("_\<^sub>1'") where
+"comp1'_one_form v f \<equiv> f(e\<^sub>1'(v))"
+
+definition comp2_one_form :: "one_form \<Rightarrow> real" ("_\<^sub>2") where
+"comp2_one_form f \<equiv> f(e\<^sub>2)"
+
+definition comp2'_one_form :: "real \<Rightarrow> one_form \<Rightarrow> real" ("_\<^sub>2'") where
+"comp2'_one_form v f \<equiv> f(e\<^sub>2'(v))"
+
+definition comp3_one_form :: "one_form \<Rightarrow> real" ("_\<^sub>3") where
+"comp3_one_form f \<equiv> f(e\<^sub>3)"
+
+definition comp3'_one_form :: "real \<Rightarrow> one_form \<Rightarrow> real" ("_\<^sub>3'") where
+"comp3'_one_form v f \<equiv> f(e\<^sub>3'(v))"
+
+definition comp4_one_form :: "one_form \<Rightarrow> real" ("_\<^sub>4") where
+"comp4_one_form f \<equiv> f(e\<^sub>4)"
+
+definition comp4'_one_form :: "real \<Rightarrow> one_form \<Rightarrow> real" ("_\<^sub>4'") where
+"comp4'_one_form v f \<equiv> f(e\<^sub>4'(v))"
+
+text \<open>The components of one_forms transform in the same manner as those of basis vectors.\<close>
+
+lemma comp_one_form_transform :
+  fixes v::"real" and f::"one_form"
+  shows "f\<^sub>1' = (\<gamma>(v)) * f\<^sub>1 + (v * \<gamma>(v)) * f\<^sub>2" and "f\<^sub>2' = (v * \<gamma>(v)) * f\<^sub>1 + (\<gamma>(v)) * f\<^sub>2" and
+    "f\<^sub>3' = f\<^sub>3" and "f\<^sub>4' = f\<^sub>4" sorry
+
+text \<open>The components of vectors transform in the opposite manner to those of one_forms.\<close>
+
+definition comp1'_vec :: "real \<Rightarrow> real^4 \<Rightarrow> real" ("_\<^sub>1'") where
+"comp1'_vec v x \<equiv> (\<gamma>(v)) * (x $ 1) + (- v * \<gamma>(v)) * (x $ 2)"
+
+definition comp2'_vec :: "real \<Rightarrow> real^4 \<Rightarrow> real" ("_\<^sub>2'") where
+"comp2'_vec v x \<equiv> (- v * \<gamma>(v)) * (x $ 1) + (\<gamma>(v)) * (x $ 2)"
+
+definition comp3'_vec :: "real \<Rightarrow> real^4 \<Rightarrow> real" ("_\<^sub>3'") where
+"comp3'_vec v x \<equiv> x $ 3"
+
+definition comp4'_vec :: "real \<Rightarrow> real^4 \<Rightarrow> real" ("_\<^sub>4'") where
+"comp4'_vec v x \<equiv> x $ 4"
+
+text 
+\<open>
+In the same way a vector is kept frame independent (but not its components which depend on the 
+chosen basis), one has the following frame independent quantity.
+\<close>
+
 
 end
