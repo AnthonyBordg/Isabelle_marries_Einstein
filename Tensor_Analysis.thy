@@ -457,7 +457,7 @@ interpretation isabelian_group_one_form : abelian_group "one_form_monoid" sorry
 definition one_form_smult :: "[real, one_form] \<Rightarrow> one_form" where
 "one_form_smult r f \<equiv> Abs_one_form (\<lambda>v. r * f(v))"
 
-definition one_form_module :: "(_, _, _) module_scheme" where
+definition one_form_module :: "(_, _, _) module_scheme" ("1-form") where
 "one_form_module \<equiv> \<lparr>carrier = UNIV::(one_form) set, mult = one_form_add, one = one_form_zero, 
   zero = undefined, add = undefined, smult = one_form_smult\<rparr>"
 
@@ -492,16 +492,16 @@ components of vectors and in the opposite way to components of one-forms.
 \<close>
 
 definition one_form_basis1' :: "real \<Rightarrow> one_form" ("\<omega>\<^sup>1'") where
-"one_form_basis1' v \<equiv> (\<gamma>(v)) * \<omega>\<^sup>1 + (- v * \<gamma>(v)) * \<omega>\<^sup>2"
+"one_form_basis1' v \<equiv> (\<gamma>(v)) \<odot>\<^bsub>1-form\<^esub> \<omega>\<^sup>1 \<oplus>\<^bsub>1-form\<^esub> (- v * \<gamma>(v)) \<odot>\<^bsub>1-form\<^esub> \<omega>\<^sup>2"
 
-definition vec_basis2' :: "real \<Rightarrow> real^4" ("\<omega>\<^sup>2'") where
-"vec_basis2' v \<equiv> (- v * \<gamma>(v)) * \<omega>\<^sup>1 + (\<gamma>(v)) * \<omega>\<^sup>2"
+definition one_form_basis2' :: "real \<Rightarrow> one_form" ("\<omega>\<^sup>2'") where
+"one_form_basis2' v \<equiv> (- v * \<gamma>(v)) \<odot>\<^bsub>1-form\<^esub> \<omega>\<^sup>1 \<oplus>\<^bsub>1-form\<^esub> (\<gamma>(v)) \<odot>\<^bsub>1-form\<^esub> \<omega>\<^sup>2"
 
-definition vec_basis3' :: "real \<Rightarrow> real^4" ("\<omega>\<^sup>3'") where
-"vec_basis3' v \<equiv> \<omega>\<^sup>3"
+definition one_form_basis3' :: "real \<Rightarrow> one_form" ("\<omega>\<^sup>3'") where
+"one_form_basis3' v \<equiv> \<omega>\<^sup>3"
 
-definition vec_basis4' :: "real \<Rightarrow> real^4" ("\<omega>\<^sup>4'") where
-"vec_basis4' v \<equiv> \<omega>\<^sup>4"
+definition one_form_basis4' :: "real \<Rightarrow> one_form" ("\<omega>\<^sup>4'") where
+"one_form_basis4' v \<equiv> \<omega>\<^sup>4"
 
 definition one_form_basis' :: "real \<Rightarrow> (one_form) set"  where
 "one_form_basis' v \<equiv> {\<omega>\<^sup>1'(v), \<omega>\<^sup>2'(v), \<omega>\<^sup>3'(v), \<omega>\<^sup>4'(v)}"
