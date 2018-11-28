@@ -3,7 +3,18 @@ Author: Anthony Bordg
 Affiliation: University of Cambridge 
 email: apdb3@cam.ac.uk
 Date: November 2018 
+
+Biblio:
+
+- A First Course in General Relativity, Bernard Schutz, Cambridge University Press, second edition,
+chapter 3.
 *)
+
+text 
+\<open>
+Since we follow a physics textbook, we do not strive for the most general results or the most
+general mathematical formulations.
+\<close>
 
 theory Tensor_Analysis
 imports
@@ -11,7 +22,13 @@ imports
   VectorSpace.VectorSpace
 begin
 
-section \<open>The (0,1) Tensors: One-Forms\<close>
+text
+\<open>
+Since we take a pedagogical approach, we start with (0,1)-tensors and (0,2)-tensors before
+introducing the general case: (m,n)-tensors.
+\<close>
+
+section \<open>The (0,1)-Tensors: One-Forms\<close>
 
 text 
 \<open>
@@ -509,6 +526,22 @@ definition one_form_basis' :: "real \<Rightarrow> (one_form) set"  where
 lemma isbasis_one_form_basis' :
   fixes v :: real
   shows "isvecspace_one_form.basis (one_form_basis' v)" sorry
+
+
+section\<open>The (0,2)-Tensors: Two-Forms.\<close>
+
+definition bilinear :: "([real^4, real^4] \<Rightarrow> real) \<Rightarrow> bool" where
+"bilinear f \<equiv> (\<forall>y::real^4. linear (\<lambda>x. f x y)) \<and> (\<forall>x::real^4. linear (\<lambda>y. f x y))"
+
+lemma bilinear_zero :
+  shows "bilinear (\<lambda>x y::real^4. 0)" sorry
+
+typedef two_form = "{f| f:: [real^4, real^4] \<Rightarrow> real. bilinear f}"
+  using bilinear_zero 
+  by auto
+
+definition outer_prod_one_forms :: "[one_form, one_form] \<Rightarrow> two_form" where
+"outer_prod_one_forms f g \<equiv> Abs_two_form (\<lambda>x y. f x * f y)"
 
 
 
