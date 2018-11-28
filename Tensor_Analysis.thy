@@ -312,21 +312,29 @@ definition vec_basis3 :: "real^4" ("e\<^sub>3") where
 definition vec_basis4 :: "real^4" ("e\<^sub>4") where
 "vec_basis4 \<equiv> vector [0, 0, 0, 1]"
 
-definition basis1 :: "(real^4) set" ("\<O>") where
-"basis1 \<equiv> {e\<^sub>1, e\<^sub>2, e\<^sub>3, e\<^sub>4}"
+definition vec_basis :: "(real^4) set" ("\<O>") where
+"vec_basis \<equiv> {e\<^sub>1, e\<^sub>2, e\<^sub>3, e\<^sub>4}"
 
-lemma isbasis_basis1 :
+lemma isbasis_vec_basis :
   shows "isvecspace_real4.basis \<O>" sorry
 
 text
 \<open>
 Now, one considers the situation where a second frame of reference \<O>' moves with 
-velocity v \<le> 1 (c = 1) in the x direction relative to the first frame \<O>. Then, one applies the Lorentz 
-transformation to get a second basis.
+velocity v < 1 (with c = 1) in the x direction relative to the first frame \<O>. 
+Then, one applies the Lorentz transformation to get a second basis.
 \<close>
 
 definition lorentz_factor :: "real \<Rightarrow> real" ("\<gamma>(_)") where
 "lorentz_factor v \<equiv> 1/sqrt(1 - v\<^sup>2)"
+
+text \<open>The transform for components of vectors.\<close>
+
+definition vec_nth' :: "real^4 \<Rightarrow> real \<Rightarrow> nat \<Rightarrow> real" ("_ $ _ _") where
+"vec_nth' x v n \<equiv> if n=1 then (\<gamma>(v)) * (x $ 1) + (- v * \<gamma>(v)) * (x $ 2) else
+  if n=2 then (- v * \<gamma>(v)) * (x $ 1) + (\<gamma>(v)) * (x $ 2) else
+  if n=3 then x $ 3 else
+  if n= 4 then x $ 4 else undefined"
 
 definition vec_basis1' :: "real \<Rightarrow> real^4" ("e\<^sub>1'") where
 "vec_basis1' v \<equiv> vector [\<gamma>(v), v * \<gamma>(v), 0 ,0]"
@@ -340,10 +348,10 @@ definition vec_basis3' :: "real \<Rightarrow> real^4" ("e\<^sub>3' (_)") where
 definition vec_basis4' :: "real \<Rightarrow> real^4" ("e\<^sub>4' (_)") where
 "vec_basis4' v \<equiv> vector [0, 0, 0, 1]"
 
-definition basis1' :: "real \<Rightarrow> (real^4) set" ("\<O>' (_)") where
-"basis1' v \<equiv> {e\<^sub>1'(v), e\<^sub>2'(v), e\<^sub>3'(v), e\<^sub>4'(v)}"
+definition vec_basis' :: "real \<Rightarrow> (real^4) set" ("\<O>' (_)") where
+"vec_basis' v \<equiv> {e\<^sub>1'(v), e\<^sub>2'(v), e\<^sub>3'(v), e\<^sub>4'(v)}"
 
-lemma isbasis_basis1' :
+lemma isbasis_vec_basis' :
   fixes v :: real
   shows "isvecspace_real4.basis \<O>'(v)" sorry
 
@@ -353,56 +361,155 @@ We define the components of a one_form on a given basis as the real numbers obta
 the application of the one_form to the basis vectors.
 \<close>
 
-definition comp1_one_form :: "one_form \<Rightarrow> real" ("_\<^sub>1") where
-"comp1_one_form f \<equiv> f(e\<^sub>1)"
+definition one_form_nth :: "one_form \<Rightarrow> nat \<Rightarrow> real" ("_ \<section> _") where
+"one_form_nth f n \<equiv> if n=1 then f(e\<^sub>1) else
+  if n=2 then f(e\<^sub>2) else
+  if n=3 then f(e\<^sub>3) else
+  if n=4 then f(e\<^sub>4) else undefined"
 
-definition comp1'_one_form :: "real \<Rightarrow> one_form \<Rightarrow> real" ("_\<^sub>1'") where
-"comp1'_one_form v f \<equiv> f(e\<^sub>1'(v))"
+definition one_form_nth' :: "one_form \<Rightarrow> real \<Rightarrow> nat \<Rightarrow> real" (" _ \<section> _ _") where
+"one_form_nth' f v n \<equiv> if n=1 then f(e\<^sub>1'(v)) else
+  if n=2 then f(e\<^sub>2'(v)) else
+  if n=3 then f(e\<^sub>3'(v)) else
+  if n=4 then f(e\<^sub>4'(v)) else undefined"
 
-definition comp2_one_form :: "one_form \<Rightarrow> real" ("_\<^sub>2") where
-"comp2_one_form f \<equiv> f(e\<^sub>2)"
-
-definition comp2'_one_form :: "real \<Rightarrow> one_form \<Rightarrow> real" ("_\<^sub>2'") where
-"comp2'_one_form v f \<equiv> f(e\<^sub>2'(v))"
-
-definition comp3_one_form :: "one_form \<Rightarrow> real" ("_\<^sub>3") where
-"comp3_one_form f \<equiv> f(e\<^sub>3)"
-
-definition comp3'_one_form :: "real \<Rightarrow> one_form \<Rightarrow> real" ("_\<^sub>3'") where
-"comp3'_one_form v f \<equiv> f(e\<^sub>3'(v))"
-
-definition comp4_one_form :: "one_form \<Rightarrow> real" ("_\<^sub>4") where
-"comp4_one_form f \<equiv> f(e\<^sub>4)"
-
-definition comp4'_one_form :: "real \<Rightarrow> one_form \<Rightarrow> real" ("_\<^sub>4'") where
-"comp4'_one_form v f \<equiv> f(e\<^sub>4'(v))"
-
-text \<open>The components of one_forms transform in the same manner as those of basis vectors.\<close>
+text \<open>The components of one_forms transform in the same manner as those of basis vectors and
+in the opposite manner to components of vectors.\<close>
 
 lemma comp_one_form_transform :
   fixes v::"real" and f::"one_form"
-  shows "f\<^sub>1' = (\<gamma>(v)) * f\<^sub>1 + (v * \<gamma>(v)) * f\<^sub>2" and "f\<^sub>2' = (v * \<gamma>(v)) * f\<^sub>1 + (\<gamma>(v)) * f\<^sub>2" and
-    "f\<^sub>3' = f\<^sub>3" and "f\<^sub>4' = f\<^sub>4" sorry
-
-text \<open>The components of vectors transform in the opposite manner to those of one_forms.\<close>
-
-definition comp1'_vec :: "real \<Rightarrow> real^4 \<Rightarrow> real" ("_\<^sub>1'") where
-"comp1'_vec v x \<equiv> (\<gamma>(v)) * (x $ 1) + (- v * \<gamma>(v)) * (x $ 2)"
-
-definition comp2'_vec :: "real \<Rightarrow> real^4 \<Rightarrow> real" ("_\<^sub>2'") where
-"comp2'_vec v x \<equiv> (- v * \<gamma>(v)) * (x $ 1) + (\<gamma>(v)) * (x $ 2)"
-
-definition comp3'_vec :: "real \<Rightarrow> real^4 \<Rightarrow> real" ("_\<^sub>3'") where
-"comp3'_vec v x \<equiv> x $ 3"
-
-definition comp4'_vec :: "real \<Rightarrow> real^4 \<Rightarrow> real" ("_\<^sub>4'") where
-"comp4'_vec v x \<equiv> x $ 4"
+  shows "f \<section> v 1 = (\<gamma>(v)) * (f \<section> 1) + (v * \<gamma>(v)) * (f \<section> 2)" and 
+    "f \<section> v 2 = (v * \<gamma>(v)) * (f \<section> 1) + (\<gamma>(v)) * (f \<section> 2)" and 
+    "f \<section> v 3 = f \<section> 3" and 
+    "f \<section> v 4 = f \<section> 4" sorry
 
 text 
 \<open>
 In the same way a vector is kept frame independent (but not its components which depend on the 
-chosen basis), one has the following frame independent quantity.
+chosen basis), one has the following frame independent quantity for any vector and any one-form.
 \<close>
+
+lemma lorentz_factor_sqrt :
+  fixes v::"real"
+  assumes "v\<^sup>2 < 1"
+  shows "(\<gamma>(v))\<^sup>2 * (1 - v\<^sup>2) = 1"
+proof-
+  have f1:"(\<gamma>(v))\<^sup>2 * (1 - v\<^sup>2) = (1/sqrt(1 - v\<^sup>2))\<^sup>2 * (1 - v\<^sup>2)"
+    using lorentz_factor_def
+    by simp
+  have f2:"1 - v\<^sup>2 > 0"
+    using assms
+    by simp
+  from f1 and f2 have "(\<gamma>(v))\<^sup>2 * (1 - v\<^sup>2) = 1/(1 - v\<^sup>2) * (1 - v\<^sup>2)"
+    using real_sqrt_pow2
+    by (simp add: power_one_over)
+  thus ?thesis
+    using f2
+    by simp
+qed
+
+lemma frame_ind_qty1 :
+  fixes v::"real" and x::"real^4" and f::"one_form"
+  assumes "v\<^sup>2 < 1"
+  shows "(x $ v 1) * (f \<section> v 1) + (x $ v 2) * (f \<section> v 2) + (x $ v 3) * (f \<section> v 3) + (x $ v 4) * (f \<section> v 4) 
+  = (x $ 1) * (f \<section> 1) + (x $ 2) * (f \<section> 2) + (x $ 3) * (f \<section> 3) + (x $ 4) * (f \<section> 4)"
+proof-
+  define q where  "q \<equiv> (x $ v 1) * (f \<section> v 1) + (x $ v 2) * (f \<section> v 2) + (x $ v 3) * (f \<section> v 3) + (x $ v 4) * (f \<section> v 4)"
+  have "q = ((\<gamma>(v)) * (x $ 1) + (- v * \<gamma>(v)) * (x $ 2)) * ((\<gamma>(v)) * (f \<section> 1) + (v * \<gamma>(v)) * (f \<section> 2)) + 
+  ((- v * \<gamma>(v)) * (x $ 1) + (\<gamma>(v)) * (x $ 2)) * ((v * \<gamma>(v)) * (f \<section> 1) + (\<gamma>(v)) * (f \<section> 2)) + 
+  (x $ 3) * (f \<section> 3) + 
+  (x $ 4) * (f \<section> 4)" sorry
+  then have "q = (((\<gamma>(v)) * (x $ 1)) * (\<gamma>(v)) + ((- v * \<gamma>(v)) * (x $ 2)) * (\<gamma>(v)) + ((- v * \<gamma>(v)) * (x $ 1)) * (v * \<gamma>(v)) + ((\<gamma>(v)) * (x $ 2)) * (v * \<gamma>(v))) * (f \<section> 1) + 
+  (((\<gamma>(v)) * (x $ 1)) * (v * \<gamma>(v)) + ((- v * \<gamma>(v)) * (x $ 2)) * (v * \<gamma>(v)) + ((- v * \<gamma>(v)) * (x $ 1)) * (\<gamma>(v)) + ((\<gamma>(v)) * (x $ 2)) * \<gamma>(v)) * (f \<section> 2) + 
+  (x $ 3) * (f \<section> 3) + 
+  (x $ 4) * (f \<section> 4)" sorry
+  then have "q = (((\<gamma>(v))\<^sup>2 * (x $ 1)) * (1 - v\<^sup>2)) * (f \<section> 1) + 
+  (((\<gamma>(v))\<^sup>2 * (x $ 2)) * (1 - v\<^sup>2)) * (f \<section> 2) + 
+  (x $ 3) * (f \<section> 3) + 
+  (x $ 4) * (f \<section> 4)" sorry
+  then have "q = (x $ 1) * (f \<section> 1) + (x $ 2) * (f \<section> 2) + (x $ 3) * (f \<section> 3) + (x $ 4) * (f \<section> 4)" sorry
+  thus ?thesis
+    using q_def 
+    by simp
+qed
+
+text 
+\<open>
+We prove that one-forms form a (real) vector space using the notion of vector space in the theory
+VectorSpace of Holden Lee. That way one can use notions like span, linear independence and basis
+introduced in that theory.  
+\<close>
+
+definition one_form_add :: "[one_form, one_form] \<Rightarrow> one_form" where
+"one_form_add f g \<equiv> Abs_one_form (\<lambda>v. f(v) + g(v))"
+
+definition one_form_zero :: "one_form" where
+"one_form_zero \<equiv> Abs_one_form (\<lambda>v. 0)"
+
+definition one_form_monoid :: "(_, _) ring_scheme" where
+"one_form_monoid \<equiv> \<lparr>carrier = UNIV::(one_form) set, mult = one_form_add, one = one_form_zero, 
+  zero = undefined, add = undefined\<rparr>"
+
+interpretation isabelian_monoid_one_form : abelian_monoid "one_form_monoid" sorry
+
+interpretation isabelian_group_one_form : abelian_group "one_form_monoid" sorry
+
+definition one_form_smult :: "[real, one_form] \<Rightarrow> one_form" where
+"one_form_smult r f \<equiv> Abs_one_form (\<lambda>v. r * f(v))"
+
+definition one_form_module :: "(_, _, _) module_scheme" where
+"one_form_module \<equiv> \<lparr>carrier = UNIV::(one_form) set, mult = one_form_add, one = one_form_zero, 
+  zero = undefined, add = undefined, smult = one_form_smult\<rparr>"
+
+interpretation ismodule_one_form : module "real_ring" "one_form_module" sorry
+
+interpretation isvecspace_one_form : vectorspace "real_ring" "one_form_module" sorry
+
+text \<open>We define a basis for the vector space of one-forms.\<close>
+
+definition one_form_basis1 :: "one_form" ("\<omega>\<^sup>1") where
+"one_form_basis1 \<equiv> Abs_one_form (\<lambda>x. x $ 1)"
+
+definition one_form_basis2 :: "one_form" ("\<omega>\<^sup>2") where
+"one_form_basis2 \<equiv> Abs_one_form (\<lambda>x. x $ 2)"
+
+definition one_form_basis3 :: "one_form" ("\<omega>\<^sup>3") where
+"one_form_basis3 \<equiv> Abs_one_form (\<lambda>x. x $ 3)"
+
+definition one_form_basis4 :: "one_form" ("\<omega>\<^sup>4") where
+"one_form_basis4 \<equiv> Abs_one_form (\<lambda>x. x $ 3)"
+
+definition one_form_basis :: "(one_form) set" where
+"one_form_basis \<equiv> {\<omega>\<^sup>1, \<omega>\<^sup>2, \<omega>\<^sup>3, \<omega>\<^sup>4}"
+
+lemma isbasis_one_form_basis :
+  shows "isvecspace_one_form.basis one_form_basis" sorry
+
+text 
+\<open>
+The basis1_one_form transforms under a change of basis in the same way as
+components of vectors and in the opposite way to components of one-forms.
+\<close>
+
+definition one_form_basis1' :: "real \<Rightarrow> one_form" ("\<omega>\<^sup>1'") where
+"one_form_basis1' v \<equiv> (\<gamma>(v)) * \<omega>\<^sup>1 + (- v * \<gamma>(v)) * \<omega>\<^sup>2"
+
+definition vec_basis2' :: "real \<Rightarrow> real^4" ("\<omega>\<^sup>2'") where
+"vec_basis2' v \<equiv> (- v * \<gamma>(v)) * \<omega>\<^sup>1 + (\<gamma>(v)) * \<omega>\<^sup>2"
+
+definition vec_basis3' :: "real \<Rightarrow> real^4" ("\<omega>\<^sup>3'") where
+"vec_basis3' v \<equiv> \<omega>\<^sup>3"
+
+definition vec_basis4' :: "real \<Rightarrow> real^4" ("\<omega>\<^sup>4'") where
+"vec_basis4' v \<equiv> \<omega>\<^sup>4"
+
+definition one_form_basis' :: "real \<Rightarrow> (one_form) set"  where
+"one_form_basis' v \<equiv> {\<omega>\<^sup>1'(v), \<omega>\<^sup>2'(v), \<omega>\<^sup>3'(v), \<omega>\<^sup>4'(v)}"
+
+lemma isbasis_one_form_basis' :
+  fixes v :: real
+  shows "isvecspace_one_form.basis (one_form_basis' v)" sorry
+
 
 
 end
