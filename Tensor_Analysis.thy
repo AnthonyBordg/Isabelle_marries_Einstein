@@ -10,11 +10,12 @@ Biblio:
 chapter 3.
 *)
 
-text 
-\<open>
+text \<open>Abstract: \<close>
+
+(*
 Since we follow a physics textbook, we do not strive for the most general results or the most
 general mathematical formulations.
-\<close>
+*)
 
 theory Tensor_Analysis
 imports
@@ -24,8 +25,8 @@ begin
 
 text
 \<open>
-Since we take a pedagogical approach, we start with (0,1)-tensors and (0,2)-tensors before
-introducing the general case: (m,n)-tensors.
+Following the textbook mentioned above we take a pedagogical approach. Indeed, we start with 
+(0,1)-tensors and (0,2)-tensors before introducing the general case: (m,n)-tensors.
 \<close>
 
 section \<open>The (0,1)-Tensors: One-Forms\<close>
@@ -77,7 +78,7 @@ declare [[coercion one_form_to_fun]]
 instantiation one_form :: real_vector
 begin
 
-lemma islinear_uminus_one_form:
+lemma linear_uminus_one_form:
   fixes f::"one_form"
   shows "linear (\<lambda>v. - f(v))"
 proof
@@ -92,7 +93,7 @@ qed
 definition uminus_one_form :: "one_form \<Rightarrow> one_form" where
 "uminus_one_form f \<equiv> Abs_one_form (\<lambda>v. - f(v))"
 
-lemma islinear_zero_one_form:
+lemma linear_zero_one_form:
   shows "linear (\<lambda>v. 0)"
   using linear_zero
   by simp
@@ -100,7 +101,7 @@ lemma islinear_zero_one_form:
 definition zero_one_form :: "one_form" where
 "zero_one_form \<equiv> Abs_one_form (\<lambda>v. 0)"
 
-lemma islinear_minus_one_form:
+lemma linear_minus_one_form:
   fixes f::"one_form" and g::"one_form"
   shows "linear (\<lambda>v. (f(v) - g(v)))" 
 proof
@@ -121,7 +122,7 @@ qed
 definition minus_one_form :: "one_form \<Rightarrow> one_form \<Rightarrow> one_form" where
 "minus_one_form f g \<equiv> Abs_one_form (\<lambda>v. f(v) - g(v))"
 
-lemma islinear_plus_one_form:
+lemma linear_plus_one_form:
   fixes f::"one_form" and g::"one_form"
   shows "linear (\<lambda>v. (f(v) + g(v)))" 
 proof
@@ -143,7 +144,7 @@ qed
 definition plus_one_form :: "one_form \<Rightarrow> one_form \<Rightarrow> one_form" where
 "plus_one_form f g \<equiv> Abs_one_form (\<lambda>v. f(v) + g(v))"
 
-lemma islinear_scaleR_one_form:
+lemma linear_scaleR_one_form:
   fixes f::"one_form"
   shows "linear (\<lambda>v. r * f(v))"
 proof
@@ -167,7 +168,7 @@ proof
     fix f g h::"one_form"
     have "(f + g + h) x = (f + (g + h)) x" for x::"real^4"
       using plus_one_form_def Rep_one_form one_form_to_fun_def semiring_normalization_rules(25)
-      by (metis (mono_tags, lifting) Abs_one_form_inverse islinear_plus_one_form mem_Collect_eq)
+      by (metis (mono_tags, lifting) Abs_one_form_inverse linear_plus_one_form mem_Collect_eq)
     thus "f + g + h = f + (g + h)"
       using one_form_eq 
       by simp
@@ -197,7 +198,7 @@ proof
     fix f::"one_form"
     have "(- f + f) x = (0::one_form) x" for x::"real^4"
       using plus_one_form_def uminus_one_form_def Rep_one_form zero_one_form_def Abs_one_form_inverse 
-        islinear_uminus_one_form one_form_to_fun_def 
+        linear_uminus_one_form one_form_to_fun_def 
       by simp
     thus "- f + f = (0::one_form)"
       using one_form_eq 
@@ -208,7 +209,7 @@ proof
     fix f::"one_form" and g::"one_form"
     have "(f - g) x = (f + - g) x" for x::"real^4"
       using minus_one_form_def uminus_one_form_def plus_one_form_def Abs_one_form_inverse 
-        islinear_uminus_one_form one_form_to_fun_def 
+        linear_uminus_one_form one_form_to_fun_def 
       by simp
     thus "f - g = f + - g"
       using one_form_eq 
@@ -219,8 +220,8 @@ proof
     fix r::real and f g::one_form
     have "(r *\<^sub>R (f + g)) x = (r *\<^sub>R f + r *\<^sub>R g) x" for x::"real^4"
       using plus_one_form_def scaleR_one_form_def ring_class.ring_distribs(1)
-      by (metis (mono_tags, lifting) Abs_one_form_inverse islinear_plus_one_form 
-          islinear_scaleR_one_form mem_Collect_eq one_form_to_fun_def)
+      by (metis (mono_tags, lifting) Abs_one_form_inverse linear_plus_one_form 
+          linear_scaleR_one_form mem_Collect_eq one_form_to_fun_def)
     thus "r *\<^sub>R (f + g) = r *\<^sub>R f + r *\<^sub>R g"
       using one_form_eq 
       by simp
@@ -229,11 +230,11 @@ proof
   proof-
     fix r s::real and f::one_form
     have f1:"((r + s) *\<^sub>R f) x = (r + s) * f(x)" for x::"real^4"
-      using scaleR_one_form_def Abs_one_form_inverse islinear_scaleR_one_form one_form_to_fun_def 
+      using scaleR_one_form_def Abs_one_form_inverse linear_scaleR_one_form one_form_to_fun_def 
       by simp
     have f2:"(r *\<^sub>R f + s *\<^sub>R f) x = r * f(x) + s * f(x)" for x::"real^4"
       using scaleR_one_form_def plus_one_form_def
-      by (metis (no_types, lifting) Abs_one_form_inverse islinear_plus_one_form islinear_scaleR_one_form 
+      by (metis (no_types, lifting) Abs_one_form_inverse linear_plus_one_form linear_scaleR_one_form 
           mem_Collect_eq one_form_to_fun_def)
     from f1 and f2 have "((r + s) *\<^sub>R f) x = (r *\<^sub>R f + s *\<^sub>R f) x" for x::"real^4"
       using scaleR_one_form_def plus_one_form_def
@@ -247,7 +248,7 @@ proof
     fix r s::real and f::one_form
     have "(r *\<^sub>R s *\<^sub>R f) x = ((r * s) *\<^sub>R f) x" for x::"real^4"
       using scaleR_one_form_def
-      by (metis Abs_one_form_inverse islinear_scaleR_one_form linordered_field_class.sign_simps(23) 
+      by (metis Abs_one_form_inverse linear_scaleR_one_form linordered_field_class.sign_simps(23) 
           mem_Collect_eq one_form_to_fun_def)
     thus "r *\<^sub>R s *\<^sub>R f = (r * s) *\<^sub>R f"
       using one_form_eq 
@@ -286,14 +287,14 @@ definition real4_monoid :: "(_, _) ring_scheme" where
 "real4_monoid \<equiv> \<lparr>carrier = UNIV::(real^4) set, mult = real4_add, one = real4_zero, 
   zero = undefined, add = undefined\<rparr>"
 
-interpretation isabelian_monoid_real4 : abelian_monoid "real4_monoid" sorry
+interpretation abelian_monoid_real4 : abelian_monoid "real4_monoid" sorry
 
-interpretation isabelian_group_real4 : abelian_group "real4_monoid" sorry
+interpretation abelian_group_real4 : abelian_group "real4_monoid" sorry
 
 definition real_ring :: "(_, _) ring_scheme" where
 "real_ring \<equiv> \<lparr>carrier = UNIV::real set, mult = ( * ), one = 1, zero = 0, add = (+)\<rparr>"
 
-interpretation iscring_real_ring : cring "real_ring" sorry
+interpretation cring_real_ring : cring "real_ring" sorry
 
 definition real4_smult :: "[real, real^4] \<Rightarrow> real^4" where
 "real4_smult r x \<equiv> vector [r * x $ 1, r * x $ 2, r * x $ 3, r * x $ 4]"
@@ -302,13 +303,13 @@ definition real4_module :: "(_, _, _) module_scheme" where
 "real4_module \<equiv> \<lparr>carrier = UNIV::(real^4) set, mult = real4_add, one = real4_zero, 
   zero = undefined, add = undefined, smult = real4_smult\<rparr>"
 
-interpretation ismodule_real4 : module "real_ring" "real4_module" sorry
+interpretation module_real4 : module "real_ring" "real4_module" sorry
 
-interpretation isdomain : domain "real_ring" sorry
+interpretation domain_real : domain "real_ring" sorry
 
-interpretation isfield : field "real_ring" sorry
+interpretation field_real : field "real_ring" sorry
 
-interpretation isvecspace_real4 : vectorspace "real_ring" "real4_module" sorry
+interpretation vecspace_real4 : vectorspace "real_ring" "real4_module" sorry
 
 text 
 \<open>
@@ -332,8 +333,8 @@ definition vec_basis4 :: "real^4" ("e\<^sub>4") where
 definition vec_basis :: "(real^4) set" ("\<O>") where
 "vec_basis \<equiv> {e\<^sub>1, e\<^sub>2, e\<^sub>3, e\<^sub>4}"
 
-lemma isbasis_vec_basis :
-  shows "isvecspace_real4.basis \<O>" sorry
+lemma basis_vec_basis :
+  shows "vecspace_real4.basis \<O>" sorry
 
 text
 \<open>
@@ -342,22 +343,22 @@ velocity v < 1 (with c = 1) in the x direction relative to the first frame \<O>.
 Then, one applies the Lorentz transformation to get a second basis.
 \<close>
 
-definition lorentz_factor :: "real \<Rightarrow> real" ("\<gamma>(_)") where
+definition lorentz_factor :: "real \<Rightarrow> real" ("\<gamma> _") where
 "lorentz_factor v \<equiv> 1/sqrt(1 - v\<^sup>2)"
 
 text \<open>The transform for components of vectors.\<close>
 
 definition vec_nth' :: "real^4 \<Rightarrow> real \<Rightarrow> nat \<Rightarrow> real" ("_ $ _ _") where
-"vec_nth' x v n \<equiv> if n=1 then (\<gamma>(v)) * (x $ 1) + (- v * \<gamma>(v)) * (x $ 2) else
-  if n=2 then (- v * \<gamma>(v)) * (x $ 1) + (\<gamma>(v)) * (x $ 2) else
+"vec_nth' x v n \<equiv> if n=1 then (\<gamma> v) * (x $ 1) + (- v * \<gamma> v) * (x $ 2) else
+  if n=2 then (- v * \<gamma> v) * (x $ 1) + (\<gamma> v) * (x $ 2) else
   if n=3 then x $ 3 else
   if n= 4 then x $ 4 else undefined"
 
 definition vec_basis1' :: "real \<Rightarrow> real^4" ("e\<^sub>1'") where
-"vec_basis1' v \<equiv> vector [\<gamma>(v), v * \<gamma>(v), 0 ,0]"
+"vec_basis1' v \<equiv> vector [\<gamma> v, v * \<gamma> v, 0 ,0]"
 
 definition vec_basis2' :: "real \<Rightarrow> real^4" ("e\<^sub>2' (_)") where
-"vec_basis2' v \<equiv> vector [v * \<gamma>(v), \<gamma>(v) , 0, 0]"
+"vec_basis2' v \<equiv> vector [v * \<gamma> v, \<gamma> v , 0, 0]"
 
 definition vec_basis3' :: "real \<Rightarrow> real^4" ("e\<^sub>3' (_)") where
 "vec_basis3' v \<equiv> vector [0, 0, 1, 0]"
@@ -368,9 +369,9 @@ definition vec_basis4' :: "real \<Rightarrow> real^4" ("e\<^sub>4' (_)") where
 definition vec_basis' :: "real \<Rightarrow> (real^4) set" ("\<O>' (_)") where
 "vec_basis' v \<equiv> {e\<^sub>1'(v), e\<^sub>2'(v), e\<^sub>3'(v), e\<^sub>4'(v)}"
 
-lemma isbasis_vec_basis' :
+lemma basis_vec_basis' :
   fixes v :: real
-  shows "isvecspace_real4.basis \<O>'(v)" sorry
+  shows "vecspace_real4.basis \<O>'(v)" sorry
 
 text 
 \<open>
@@ -395,8 +396,8 @@ in the opposite manner to components of vectors.\<close>
 
 lemma comp_one_form_transform :
   fixes v::"real" and f::"one_form"
-  shows "f \<section> v 1 = (\<gamma>(v)) * (f \<section> 1) + (v * \<gamma>(v)) * (f \<section> 2)" and 
-    "f \<section> v 2 = (v * \<gamma>(v)) * (f \<section> 1) + (\<gamma>(v)) * (f \<section> 2)" and 
+  shows "f \<section> v 1 = (\<gamma> v) * (f \<section> 1) + (v * \<gamma> v) * (f \<section> 2)" and 
+    "f \<section> v 2 = (v * \<gamma> v) * (f \<section> 1) + (\<gamma> v) * (f \<section> 2)" and 
     "f \<section> v 3 = f \<section> 3" and 
     "f \<section> v 4 = f \<section> 4" sorry
 
@@ -409,15 +410,15 @@ chosen basis), one has the following frame independent quantity for any vector a
 lemma lorentz_factor_sqrt :
   fixes v::"real"
   assumes "v\<^sup>2 < 1"
-  shows "(\<gamma>(v))\<^sup>2 * (1 - v\<^sup>2) = 1"
+  shows "(\<gamma> v)\<^sup>2 * (1 - v\<^sup>2) = 1"
 proof-
-  have f1:"(\<gamma>(v))\<^sup>2 * (1 - v\<^sup>2) = (1/sqrt(1 - v\<^sup>2))\<^sup>2 * (1 - v\<^sup>2)"
+  have f1:"(\<gamma> v)\<^sup>2 * (1 - v\<^sup>2) = (1/sqrt(1 - v\<^sup>2))\<^sup>2 * (1 - v\<^sup>2)"
     using lorentz_factor_def
     by simp
   have f2:"1 - v\<^sup>2 > 0"
     using assms
     by simp
-  from f1 and f2 have "(\<gamma>(v))\<^sup>2 * (1 - v\<^sup>2) = 1/(1 - v\<^sup>2) * (1 - v\<^sup>2)"
+  from f1 and f2 have "(\<gamma> v)\<^sup>2 * (1 - v\<^sup>2) = 1/(1 - v\<^sup>2) * (1 - v\<^sup>2)"
     using real_sqrt_pow2
     by (simp add: power_one_over)
   thus ?thesis
@@ -432,16 +433,16 @@ lemma frame_ind_qty1 :
   = (x $ 1) * (f \<section> 1) + (x $ 2) * (f \<section> 2) + (x $ 3) * (f \<section> 3) + (x $ 4) * (f \<section> 4)"
 proof-
   define q where  "q \<equiv> (x $ v 1) * (f \<section> v 1) + (x $ v 2) * (f \<section> v 2) + (x $ v 3) * (f \<section> v 3) + (x $ v 4) * (f \<section> v 4)"
-  have "q = ((\<gamma>(v)) * (x $ 1) + (- v * \<gamma>(v)) * (x $ 2)) * ((\<gamma>(v)) * (f \<section> 1) + (v * \<gamma>(v)) * (f \<section> 2)) + 
-  ((- v * \<gamma>(v)) * (x $ 1) + (\<gamma>(v)) * (x $ 2)) * ((v * \<gamma>(v)) * (f \<section> 1) + (\<gamma>(v)) * (f \<section> 2)) + 
+  have "q = ((\<gamma> v) * (x $ 1) + (- v * \<gamma> v) * (x $ 2)) * ((\<gamma> v) * (f \<section> 1) + (v * \<gamma> v) * (f \<section> 2)) + 
+  ((- v * \<gamma> v) * (x $ 1) + (\<gamma> v) * (x $ 2)) * ((v * \<gamma> v) * (f \<section> 1) + (\<gamma> v) * (f \<section> 2)) + 
   (x $ 3) * (f \<section> 3) + 
   (x $ 4) * (f \<section> 4)" sorry
-  then have "q = (((\<gamma>(v)) * (x $ 1)) * (\<gamma>(v)) + ((- v * \<gamma>(v)) * (x $ 2)) * (\<gamma>(v)) + ((- v * \<gamma>(v)) * (x $ 1)) * (v * \<gamma>(v)) + ((\<gamma>(v)) * (x $ 2)) * (v * \<gamma>(v))) * (f \<section> 1) + 
-  (((\<gamma>(v)) * (x $ 1)) * (v * \<gamma>(v)) + ((- v * \<gamma>(v)) * (x $ 2)) * (v * \<gamma>(v)) + ((- v * \<gamma>(v)) * (x $ 1)) * (\<gamma>(v)) + ((\<gamma>(v)) * (x $ 2)) * \<gamma>(v)) * (f \<section> 2) + 
+  then have "q = (((\<gamma> v) * (x $ 1)) * (\<gamma> v) + ((- v * \<gamma> v) * (x $ 2)) * (\<gamma> v) + ((- v * \<gamma> v) * (x $ 1)) * (v * \<gamma> v) + ((\<gamma> v) * (x $ 2)) * (v * \<gamma> v)) * (f \<section> 1) + 
+  (((\<gamma> v) * (x $ 1)) * (v * \<gamma> v) + ((- v * \<gamma> v) * (x $ 2)) * (v * \<gamma> v) + ((- v * \<gamma> v) * (x $ 1)) * (\<gamma> v) + ((\<gamma> v) * (x $ 2)) * \<gamma> v) * (f \<section> 2) + 
   (x $ 3) * (f \<section> 3) + 
   (x $ 4) * (f \<section> 4)" sorry
-  then have "q = (((\<gamma>(v))\<^sup>2 * (x $ 1)) * (1 - v\<^sup>2)) * (f \<section> 1) + 
-  (((\<gamma>(v))\<^sup>2 * (x $ 2)) * (1 - v\<^sup>2)) * (f \<section> 2) + 
+  then have "q = (((\<gamma> v)\<^sup>2 * (x $ 1)) * (1 - v\<^sup>2)) * (f \<section> 1) + 
+  (((\<gamma> v)\<^sup>2 * (x $ 2)) * (1 - v\<^sup>2)) * (f \<section> 2) + 
   (x $ 3) * (f \<section> 3) + 
   (x $ 4) * (f \<section> 4)" sorry
   then have "q = (x $ 1) * (f \<section> 1) + (x $ 2) * (f \<section> 2) + (x $ 3) * (f \<section> 3) + (x $ 4) * (f \<section> 4)" sorry
@@ -467,9 +468,9 @@ definition one_form_monoid :: "(_, _) ring_scheme" where
 "one_form_monoid \<equiv> \<lparr>carrier = UNIV::(one_form) set, mult = one_form_add, one = one_form_zero, 
   zero = undefined, add = undefined\<rparr>"
 
-interpretation isabelian_monoid_one_form : abelian_monoid "one_form_monoid" sorry
+interpretation abelian_monoid_one_form : abelian_monoid "one_form_monoid" sorry
 
-interpretation isabelian_group_one_form : abelian_group "one_form_monoid" sorry
+interpretation abelian_group_one_form : abelian_group "one_form_monoid" sorry
 
 definition one_form_smult :: "[real, one_form] \<Rightarrow> one_form" where
 "one_form_smult r f \<equiv> Abs_one_form (\<lambda>v. r * f(v))"
@@ -478,29 +479,23 @@ definition one_form_module :: "(_, _, _) module_scheme" ("1-form") where
 "one_form_module \<equiv> \<lparr>carrier = UNIV::(one_form) set, mult = one_form_add, one = one_form_zero, 
   zero = undefined, add = undefined, smult = one_form_smult\<rparr>"
 
-interpretation ismodule_one_form : module "real_ring" "one_form_module" sorry
+interpretation module_one_form : module "real_ring" "one_form_module" sorry
 
-interpretation isvecspace_one_form : vectorspace "real_ring" "one_form_module" sorry
+interpretation vecspace_one_form : vectorspace "real_ring" "one_form_module" sorry
 
 text \<open>We define a basis for the vector space of one-forms.\<close>
 
-definition one_form_basis1 :: "one_form" ("\<omega>\<^sup>1") where
-"one_form_basis1 \<equiv> Abs_one_form (\<lambda>x. x $ 1)"
-
-definition one_form_basis2 :: "one_form" ("\<omega>\<^sup>2") where
-"one_form_basis2 \<equiv> Abs_one_form (\<lambda>x. x $ 2)"
-
-definition one_form_basis3 :: "one_form" ("\<omega>\<^sup>3") where
-"one_form_basis3 \<equiv> Abs_one_form (\<lambda>x. x $ 3)"
-
-definition one_form_basis4 :: "one_form" ("\<omega>\<^sup>4") where
-"one_form_basis4 \<equiv> Abs_one_form (\<lambda>x. x $ 3)"
+definition one_form_basis_nth :: "nat \<Rightarrow> one_form" ("\<omega>\<^sup>_") where
+"one_form_basis_nth n \<equiv> if n = 1 then Abs_one_form (\<lambda>x::real^4. x $ 1) else
+  if n = 2 then Abs_one_form (\<lambda>x. x $ 2) else 
+  if n= 3 then Abs_one_form (\<lambda>x. x $ 3) else
+  if n = 4 then Abs_one_form (\<lambda>x. x $ 4) else undefined"
 
 definition one_form_basis :: "(one_form) set" where
-"one_form_basis \<equiv> {\<omega>\<^sup>1, \<omega>\<^sup>2, \<omega>\<^sup>3, \<omega>\<^sup>4}"
+"one_form_basis \<equiv> {\<omega>\<^sup>n| n::nat. n \<ge> 1 \<and> n \<le> 4}"
 
-lemma isbasis_one_form_basis :
-  shows "isvecspace_one_form.basis one_form_basis" sorry
+lemma basis_one_form_basis :
+  shows "vecspace_one_form.basis one_form_basis" sorry
 
 text 
 \<open>
@@ -509,10 +504,10 @@ components of vectors and in the opposite way to components of one-forms.
 \<close>
 
 definition one_form_basis1' :: "real \<Rightarrow> one_form" ("\<omega>\<^sup>1'") where
-"one_form_basis1' v \<equiv> (\<gamma>(v)) \<odot>\<^bsub>1-form\<^esub> \<omega>\<^sup>1 \<oplus>\<^bsub>1-form\<^esub> (- v * \<gamma>(v)) \<odot>\<^bsub>1-form\<^esub> \<omega>\<^sup>2"
+"one_form_basis1' v \<equiv> (\<gamma> v) \<odot>\<^bsub>1-form\<^esub> \<omega>\<^sup>1 \<oplus>\<^bsub>1-form\<^esub> (- v * \<gamma> v) \<odot>\<^bsub>1-form\<^esub> \<omega>\<^sup>2"
 
 definition one_form_basis2' :: "real \<Rightarrow> one_form" ("\<omega>\<^sup>2'") where
-"one_form_basis2' v \<equiv> (- v * \<gamma>(v)) \<odot>\<^bsub>1-form\<^esub> \<omega>\<^sup>1 \<oplus>\<^bsub>1-form\<^esub> (\<gamma>(v)) \<odot>\<^bsub>1-form\<^esub> \<omega>\<^sup>2"
+"one_form_basis2' v \<equiv> (- v * \<gamma> v) \<odot>\<^bsub>1-form\<^esub> \<omega>\<^sup>1 \<oplus>\<^bsub>1-form\<^esub> (\<gamma> v) \<odot>\<^bsub>1-form\<^esub> \<omega>\<^sup>2"
 
 definition one_form_basis3' :: "real \<Rightarrow> one_form" ("\<omega>\<^sup>3'") where
 "one_form_basis3' v \<equiv> \<omega>\<^sup>3"
@@ -523,12 +518,14 @@ definition one_form_basis4' :: "real \<Rightarrow> one_form" ("\<omega>\<^sup>4'
 definition one_form_basis' :: "real \<Rightarrow> (one_form) set"  where
 "one_form_basis' v \<equiv> {\<omega>\<^sup>1'(v), \<omega>\<^sup>2'(v), \<omega>\<^sup>3'(v), \<omega>\<^sup>4'(v)}"
 
-lemma isbasis_one_form_basis' :
+lemma basis_one_form_basis' :
   fixes v :: real
-  shows "isvecspace_one_form.basis (one_form_basis' v)" sorry
+  shows "vecspace_one_form.basis (one_form_basis' v)" sorry
 
 
-section\<open>The (0,2)-Tensors: Two-Forms.\<close>
+section \<open>The (0,2)-Tensors: Two-Forms.\<close>
+
+subsection \<open>Two-forms\<close>
 
 definition bilinear :: "([real^4, real^4] \<Rightarrow> real) \<Rightarrow> bool" where
 "bilinear f \<equiv> (\<forall>y::real^4. linear (\<lambda>x. f x y)) \<and> (\<forall>x::real^4. linear (\<lambda>y. f x y))"
@@ -540,8 +537,127 @@ typedef two_form = "{f| f:: [real^4, real^4] \<Rightarrow> real. bilinear f}"
   using bilinear_zero 
   by auto
 
-definition outer_prod_one_forms :: "[one_form, one_form] \<Rightarrow> two_form" where
-"outer_prod_one_forms f g \<equiv> Abs_two_form (\<lambda>x y. f x * f y)"
+definition two_form_to_fun :: "two_form \<Rightarrow> ([real^4, real^4] \<Rightarrow> real)" where
+"two_form_to_fun f \<equiv> Rep_two_form f"
+
+declare [[coercion two_form_to_fun]]
+
+definition outer_prod_one_form :: "[one_form, one_form] \<Rightarrow> two_form" ("_ \<otimes> _") where
+"outer_prod_one_form f g \<equiv> Abs_two_form (\<lambda>x y. f x * g y)"
+
+text 
+\<open>
+First, note that the outer product of two one-forms is not commutative in general.
+Second, a two-form in general is not an outer product of two one-forms, but any two-form can be
+written as a finite sum of such simple outer products of one-forms.
+\<close>
+
+lemma bilinear_outer_prod_one_form :
+  fixes f::"one_form" and g::"one_form"
+  shows "bilinear (\<lambda>x y. f x * g y)" sorry
+
+text \<open>Two-forms form a real vector space.\<close>
+
+definition two_form_add :: "[two_form, two_form] \<Rightarrow> two_form" where
+"two_form_add f g \<equiv> Abs_two_form (\<lambda>x y::real^4. f x y + g x y)"
+
+definition two_form_zero :: "two_form" where
+"two_form_zero \<equiv> Abs_two_form (\<lambda>x y. 0)"
+
+definition two_form_monoid :: "(_, _) ring_scheme" where
+"two_form_monoid \<equiv> \<lparr>carrier = UNIV::(two_form) set, mult = two_form_add, one = two_form_zero, 
+  zero = undefined, add = undefined\<rparr>"
+
+interpretation abelian_monoid_two_form : abelian_monoid "two_form_monoid" sorry
+
+interpretation abelian_group_two_form : abelian_group "two_form_monoid" sorry
+
+definition two_form_smult :: "[real, two_form] \<Rightarrow> two_form" where
+"two_form_smult r f \<equiv> Abs_two_form (\<lambda>x y. r * f x y)"
+
+definition two_form_module :: "(_, _, _) module_scheme" ("2-form") where
+"two_form_module \<equiv> \<lparr>carrier = UNIV::(two_form) set, mult = two_form_add, one = two_form_zero, 
+  zero = undefined, add = undefined, smult = two_form_smult\<rparr>"
+
+interpretation module_two_form : module "real_ring" "two_form_module" sorry
+
+interpretation vecspace_two_form : vectorspace "real_ring" "two_form_module" sorry
+
+definition two_form_basis_nth :: "nat \<Rightarrow> nat \<Rightarrow> two_form" ("\<omega>\<^sup>_\<^sup>_") where
+"two_form_basis_nth m n \<equiv> if (1 \<le> m \<and> m \<ge> 4 \<and> 1 \<le> n \<and> n \<ge> 4) then \<omega>\<^sup>m \<otimes> \<omega>\<^sup>n else undefined"
+
+definition two_form_basis :: "(two_form) set" where
+"two_form_basis \<equiv> {\<omega>\<^sup>m\<^sup>n| m n::nat. 1 \<le> m \<and> m \<ge> 4 \<and> 1 \<le> n \<and> n \<ge> 4}"
+
+lemma basis_two_form_basis :
+  shows "vecspace_two_form.basis two_form_basis" sorry
+
+subsection \<open>Symmetries\<close>
+
+definition symmetric_two_form :: "two_form \<Rightarrow> bool" where
+"symmetric_two_form f \<equiv> \<forall>x y. f x y = f y x"
+
+definition two_form_symmetrization :: "two_form \<Rightarrow> two_form" ("s_") where
+"two_form_symmetrization f \<equiv> Abs_two_form (\<lambda>x y. 1/2 * f x y + 1/2 * f y x)"
+
+lemma symmetric_two_form_symmetrization :
+  fixes f::"two_form"
+  shows "symmetric_two_form (s f)" sorry
+
+definition antisymmetric :: "two_form \<Rightarrow> bool" where
+"antisymmetric f \<equiv> \<forall>x y. f x y = - f y x"
+
+definition two_form_antisymmetrization :: "two_form \<Rightarrow> two_form" ("a_") where
+"two_form_antisymmetrization f \<equiv> Abs_two_form (\<lambda>x y. 1/2 * f x y - 1/2 * f y x)"
+
+lemma antisymmetric_two_form_antisymmetrization :
+  fixes f::"two_form"
+  shows "antisymmetric (a f)" sorry
+
+lemma split_symm_antisymm :
+  fixes f::"two_form"
+  shows "f = (s f) \<oplus>\<^bsub>2-form\<^esub> (a f)" sorry
+
+
+section \<open>The Metric Tensor\<close>
+
+subsection \<open>The Metric Tensor\<close>
+
+definition metric_tensor :: "[real^4, real^4] \<Rightarrow> real" ("g _ _")where
+"metric_tensor x y \<equiv> - (x $ 1 * y $ 1) + x $ 2 * y $ 2 + x $ 3 * y $ 3 + x $ 4 * y $ 4"
+
+lemma bilinear_metric_tensor :
+  shows "bilinear metric_tensor" sorry
+
+lemma symmetric_metric_tensor :
+  shows "symmetric_two_form (Abs_two_form metric_tensor)" sorry
+
+subsection \<open>Metric as a Mapping of Vectors into One-Forms\<close>
+
+definition mapping_vec_one_form :: "real^4 \<Rightarrow> one_form"  where
+"mapping_vec_one_form x \<equiv> Abs_one_form (\<lambda>y. g x y)"
+
+lemma linear_mapping_vec_one_form :
+  fixes x::"real^4"
+  shows "linear (mapping_vec_one_form x)" sorry
+
+subsection \<open>The Inverse: Going from One-Forms to Vectors\<close>
+
+definition mapping_one_form_vec :: "one_form \<Rightarrow> real^4" where
+"mapping_one_form_vec f \<equiv> vector [- (f \<section> 1), f \<section> 2, f \<section> 3, f \<section> 4]"
+
+text \<open>The mapping above between vectors and one-forms is one-to-one.\<close>
+
+lemma mapping_vec_one_form_vec :
+  fixes x::"real^4"
+  shows "mapping_one_form_vec (mapping_vec_one_form x) = x" sorry
+
+lemma mapping_one_form_vec_one_form :
+  fixes f::"one_form"
+  shows "mapping_vec_one_form (mapping_one_form_vec f) = f" sorry
+
+
+section \<open>The General Case: (m,n)-Tensors\<close>
 
 
 
