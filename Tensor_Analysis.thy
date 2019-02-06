@@ -660,5 +660,35 @@ lemma mapping_one_form_vec_one_form :
 section \<open>The General Case: (m,n)-Tensors\<close>
 
 
+definition contra_co_linear :: "([one_form list, (real^4) list] => real) \<Rightarrow> bool" where
+"contra_co_linear f \<equiv> 
+\<exists>m n::nat.\<forall>l1.\<forall>l2. length l1 = m \<longrightarrow> length l2 = n \<longrightarrow> 
+(
+(\<forall>i. i\<ge> 1 \<and> i\<le> m \<longrightarrow> (\<forall>l3 l4. length l3 = i-1 \<longrightarrow> length l4 = m-i \<longrightarrow> (linear (\<lambda>x. f (l3 @ ([x] @ l4)) l2)))) 
+\<and> 
+(\<forall>j. j\<ge> 1 \<and> j\<le> n \<longrightarrow> (\<forall>l5 l6. length l5 = j-1 \<longrightarrow> length l6 = n-j \<longrightarrow> (linear (\<lambda>x. f l1 (l5 @ ([x] @ l6))))))
+)"
+
+typedef tensor = "{f| f:: [one_form list, (real^4) list] \<Rightarrow> real. contra_co_linear f}"
+proof-
+  have f1:"\<forall>l:: _ list. length l = 0 \<longrightarrow> l = []"
+    by simp
+  define f where "f = (\<lambda>x::one_form list.\<lambda>y::(real^4) list. 0::real)"
+  then have "(\<lambda>x. f [] ([] @ ([x] @ []))) = (\<lambda>x. 0)"
+    by simp
+  then have "\<forall>l l'. length l = 0 \<longrightarrow> length l' = 0 \<longrightarrow> linear (\<lambda>x. f [] (l @ ([x] @ l')))"
+    using linear_zero f_def f1 
+    by simp
+  then have "\<forall>l1.\<forall>l2. length l1 = 0 \<longrightarrow> length l2 = 1 \<longrightarrow> 
+(
+(\<forall>i. i\<ge> 1 \<and> i\<le> 0 \<longrightarrow> (\<forall>l3 l4. length l3 = i-1 \<longrightarrow> length l4 = 0-i \<longrightarrow> (linear (\<lambda>x. f (l3 @ ([x] @ l4)) l2)))) 
+\<and> 
+(\<forall>j. j\<ge> 1 \<and> j\<le> 1 \<longrightarrow> (\<forall>l5 l6. length l5 = j-1 \<longrightarrow> length l6 = 1-j \<longrightarrow> (linear (\<lambda>x. f l1 (l5 @ ([x] @ l6))))))
+)" 
+    by simp
+  thus "?thesis"
+    using contra_co_linear_def 
+    by auto
+qed
 
 end
