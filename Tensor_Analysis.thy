@@ -21,6 +21,7 @@ theory Tensor_Analysis
 imports
   "HOL-Analysis.Analysis"
   VectorSpace.VectorSpace
+  "HOL-Analysis.Finite_Cartesian_Product"
 begin
 
 text
@@ -278,38 +279,83 @@ introduced in that theory.
 \<close>
 
 definition real4_add :: "[real^4, real^4] \<Rightarrow> real^4" where
-"real4_add x y \<equiv> vector [x $ 1 + y $ 1, x $ 2 + y $ 2, x $ 3 + y $ 3, x $ 4 + y $ 4]"
+"real4_add x y \<equiv> \<chi> i. x $ i + y $ i"
 
 definition real4_zero :: "real^4" where
-"real4_zero \<equiv> vector [0, 0, 0, 0]"
+"real4_zero \<equiv> \<chi> i. 0"
 
-definition real4_monoid :: "(_, _) ring_scheme" where
-"real4_monoid \<equiv> \<lparr>carrier = UNIV::(real^4) set, mult = real4_add, one = real4_zero, 
-  zero = undefined, add = undefined\<rparr>"
 
-interpretation abelian_monoid_real4 : abelian_monoid "real4_monoid" sorry
+definition real4_monoid :: "(_, _) monoid_scheme" where
+"real4_monoid \<equiv> \<lparr>carrier = UNIV::(real^4) set, mult = ( * ), one = 1, 
+  zero = real4_zero, add = real4_add\<rparr>"
+   
+interpretation monoid_real4 : monoid "real4_monoid"
+  apply unfold_locales
+  apply (auto simp: real4_monoid_def).
 
-interpretation abelian_group_real4 : abelian_group "real4_monoid" sorry
+interpretation abelian_monoid_real4 : abelian_monoid "real4_monoid"
+  apply unfold_locales
+  apply (auto simp: real4_monoid_def real4_add_def real4_zero_def).
+
+definition real4_minus :: "real^4 \<Rightarrow> real^4" where
+"real4_minus x \<equiv> \<chi> i. uminus x $ i"
+
+lemma real4_add_right_inv:
+  fixes x::"real^4"
+  shows "real4_add x (real4_minus x) = real4_zero"
+  apply (auto simp: real4_minus_def real4_add_def real4_zero_def).
+
+lemma real4_add_left_inv:
+  fixes x::"real^4"
+  shows "real4_add (real4_minus x) x = real4_zero"
+  apply (auto simp: real4_minus_def real4_add_def real4_zero_def).
+
+interpretation abelian_group_real4 : abelian_group "real4_monoid"
+  apply unfold_locales
+  apply (auto simp: real4_monoid_def Units_def)
+  using real4_add_left_inv real4_add_right_inv
+  by blast 
 
 definition real_ring :: "(_, _) ring_scheme" where
 "real_ring \<equiv> \<lparr>carrier = UNIV::real set, mult = ( * ), one = 1, zero = 0, add = (+)\<rparr>"
 
-interpretation cring_real_ring : cring "real_ring" sorry
+interpretation cring_real_ring : cring "real_ring"
+  apply unfold_locales
+  apply (auto simp: real_ring_def Units_def)
+  apply (metis diff_eq_eq linordered_field_class.sign_simps(27))
+  apply (simp add: ring_class.ring_distribs(2))
+  by (simp add: ring_class.ring_distribs(1))
 
 definition real4_smult :: "[real, real^4] \<Rightarrow> real^4" where
-"real4_smult r x \<equiv> vector [r * x $ 1, r * x $ 2, r * x $ 3, r * x $ 4]"
+"real4_smult r x \<equiv> \<chi> i. r * x $ i"
+
+definition real4_mult :: "real^4 \<Rightarrow> real^4 \<Rightarrow> real^4" where
+"real4_mult x y \<equiv> \<chi> i. x $ i * y $ i"
+
+definition real4_one :: "real^4" where
+"real4_one \<equiv> \<chi> i. 1"
 
 definition real4_module :: "(_, _, _) module_scheme" where
-"real4_module \<equiv> \<lparr>carrier = UNIV::(real^4) set, mult = real4_add, one = real4_zero, 
-  zero = undefined, add = undefined, smult = real4_smult\<rparr>"
+"real4_module \<equiv> \<lparr>carrier = UNIV::(real^4) set, mult = real4_mult, one = real4_one, 
+  zero = real4_zero, add = real4_add, smult = real4_smult\<rparr>"
 
-interpretation module_real4 : module "real_ring" "real4_module" sorry
+interpretation module_real4 : module "real_ring" "real4_module"
+  apply unfold_locales
+  apply (auto simp: real4_module_def Units_def real_ring_def real4_smult_def real4_add_def real4_zero_def)
+  apply (metis (no_types, hide_lams) add.commute add.right_inverse vector_add_component zero_index)
+  apply (auto simp: ring_class.ring_distribs(2) ring_class.ring_distribs(1) mult.assoc).
+  
+interpretation domain_real : domain "real_ring"
+  apply unfold_locales
+  apply (auto simp: real_ring_def).
 
-interpretation domain_real : domain "real_ring" sorry
+interpretation field_real : field "real_ring"
+  apply unfold_locales
+  apply (auto simp: real_ring_def Units_def)
+  by (metis divide_self_if mult.commute real_divide_square_eq times_divide_eq_right)
 
-interpretation field_real : field "real_ring" sorry
-
-interpretation vecspace_real4 : vectorspace "real_ring" "real4_module" sorry
+interpretation vecspace_real4 : vectorspace "real_ring" "real4_module"
+  apply unfold_locales.
 
 text 
 \<open>
@@ -333,8 +379,23 @@ definition vec_basis4 :: "real^4" ("e\<^sub>4") where
 definition vec_basis :: "(real^4) set" ("\<O>") where
 "vec_basis \<equiv> {e\<^sub>1, e\<^sub>2, e\<^sub>3, e\<^sub>4}"
 
+lemma lin_indpt_vec_basis :
+  shows "module_real4.lin_indpt \<O>"
+proof
+  assume "module_real4.lin_dep \<O>"
+  thus "False" sorry
+qed
+
+lemma gen_set_vec_basis :
+  shows "module_real4.gen_set \<O>" sorry
+
+lemma vec_basis_in_univ :
+  shows "\<O> \<subseteq> carrier real4_module" sorry
+
 lemma basis_vec_basis :
-  shows "vecspace_real4.basis \<O>" sorry
+  shows "vecspace_real4.basis \<O>"
+  using  lin_indpt_vec_basis gen_set_vec_basis vec_basis_in_univ
+  by (simp add: vecspace_real4.basis_def)
 
 text
 \<open>
