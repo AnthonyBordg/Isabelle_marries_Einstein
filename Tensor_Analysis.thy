@@ -22,6 +22,8 @@ imports
   "HOL-Analysis.Analysis"
   VectorSpace.VectorSpace
   "HOL-Analysis.Finite_Cartesian_Product"
+  "HOL-Algebra.Ring"
+  VectorSpace.MonoidSums
 begin
 
 text
@@ -379,11 +381,105 @@ definition vec_basis4 :: "real^4" ("e\<^sub>4") where
 definition vec_basis :: "(real^4) set" ("\<O>") where
 "vec_basis \<equiv> {e\<^sub>1, e\<^sub>2, e\<^sub>3, e\<^sub>4}"
 
+lemma sum_insert:
+  assumes "x \<notin> F"
+  shows "(\<Sum>y\<in>insert x F. P y) = (\<Sum>y\<in>F. P y) + P x" sorry
+
+lemma finsum_insert:
+  assumes "x \<notin> F" and "finite F"
+  shows "(\<Oplus>\<^bsub>real4_module\<^esub>v\<in>insert x F. P v) = (\<Oplus>\<^bsub>real4_module\<^esub>v\<in>F. P v) + P x" sorry
+
+lemma lincomb_comp :
+  assumes "finite A" and "a \<in> (A \<rightarrow> carrier real_ring)"
+  shows "\<forall>i. (module_real4.lincomb a A) $ i = (\<Sum>x\<in>{v. v\<in>A}. a x * (x $ i))"
+  apply (auto simp: module_real4.lincomb_def)
+  using assms(1)
+proof induct
+  case empty
+  then show "\<And>i. (\<Oplus>\<^bsub>real4_module\<^esub>v\<in>{}. a v \<odot>\<^bsub>real4_module\<^esub> v) $ i = (\<Sum>x\<in>{}. a x * x $ i)"
+    apply (auto simp: Ring.abelian_monoid.finsum_empty)
+    by (simp add: real4_module_def real4_zero_def)
+next
+  case (insert x A)
+  then show "\<And>x F i.
+       finite F \<Longrightarrow>
+       x \<notin> F \<Longrightarrow>
+       (\<And>i. (\<Oplus>\<^bsub>real4_module\<^esub>v\<in>F. a v \<odot>\<^bsub>real4_module\<^esub> v) $ i = (\<Sum>x\<in>F. a x * x $ i)) \<Longrightarrow>
+       (\<Oplus>\<^bsub>real4_module\<^esub>v\<in>insert x F. a v \<odot>\<^bsub>real4_module\<^esub> v) $ i = (\<Sum>x\<in>insert x F. a x * x $ i)"
+  proof-
+    fix x F i
+    assume a1:"finite F" and a2:"x \<notin> F" and rec:"(\<And>i. (\<Oplus>\<^bsub>real4_module\<^esub>v\<in>F. a v \<odot>\<^bsub>real4_module\<^esub> v) $ i = (\<Sum>x\<in>F. a x * x $ i))"
+    have f1:"(\<Sum>x\<in>insert x F. a x * x $ i) = (\<Sum>x\<in>F. a x * x $ i) + a x * x $ i"
+      using a2
+      by (simp add: sum_insert)
+    have f2:"(a x \<odot>\<^bsub>real4_module\<^esub> x) $ i = a x * x $ i"
+      using real4_smult_def
+      by (simp add: real4_module_def)
+    have "(\<Oplus>\<^bsub>real4_module\<^esub>v\<in>insert x F. a v \<odot>\<^bsub>real4_module\<^esub> v) = 
+      (\<Oplus>\<^bsub>real4_module\<^esub>v\<in>F. a v \<odot>\<^bsub>real4_module\<^esub> v) + (a x \<odot>\<^bsub>real4_module\<^esub> x)"
+      using a1 a2
+      by (simp add: finsum_insert)
+    then have "(\<Oplus>\<^bsub>real4_module\<^esub>v\<in>insert x F. a v \<odot>\<^bsub>real4_module\<^esub> v) $ i = 
+      (\<Oplus>\<^bsub>real4_module\<^esub>v\<in>F. a v \<odot>\<^bsub>real4_module\<^esub> v) $ i + (a x \<odot>\<^bsub>real4_module\<^esub> x) $ i"
+      using vec_eq_iff real4_add_def
+      by simp
+    then show "(\<Oplus>\<^bsub>real4_module\<^esub>v\<in>insert x F. a v \<odot>\<^bsub>real4_module\<^esub> v) $ i = (\<Sum>x\<in>insert x F. a x * x $ i)"
+      using f1 f2 rec 
+      by simp
+  qed
+qed
+
+lemma vector_comp:
+  shows "(vector [x1, x2, x3, x4]::('a::zero)^4) $ 1 = x1"
+    and "(vector [x1, x2, x3, x4]::('a::zero)^4) $ 2 = x2"
+    and "(vector [x1, x2, x3, x4]::('a::zero)^4) $ 3 = x3"
+    and "(vector [x1, x2, x3, x4]::('a::zero)^4) $ 4 = x4"
+  unfolding vector_def
+  by auto
+
+lemma lincomb_vec_basis:
+  assumes "finite A" and "A \<subseteq> \<O>" and "a \<in> (A \<rightarrow> carrier real_ring)" and "v \<in> A" and "a v \<noteq> 0"
+  shows "module_real4.lincomb a A \<noteq> real4_zero"
+  apply (auto simp: module_real4.lincomb_def real4_zero_def)
+proof-
+  have f1:"v = vector [1, 0, 0, 0] \<or> v = vector [0, 1, 0, 0] \<or> v = vector [0, 0, 1, 0] \<or> v = vector [0, 0, 0, 1]"
+    using assms(2) assms(4) vec_basis_def vec_basis1_def vec_basis2_def vec_basis3_def vec_basis4_def sum_def
+    by fastforce
+  then have f2:"\<forall>i. (\<Oplus>\<^bsub>real4_module\<^esub>u\<in>A. a u \<odot>\<^bsub>real4_module\<^esub> u) $ i = (\<Sum>x\<in>{u. u\<in>A}. a x * (x $ i))"
+    using assms(1) assms(3) lincomb_comp module_real4.lincomb_def 
+    by simp
+  then have "(\<Oplus>\<^bsub>real4_module\<^esub>u\<in>A. a u \<odot>\<^bsub>real4_module\<^esub> u) $ 1 = (\<Sum>x\<in>{u. u\<in>A}. a x * (x $ 1))"
+    by simp
+  then have "(\<Oplus>\<^bsub>real4_module\<^esub>u\<in>A. a u \<odot>\<^bsub>real4_module\<^esub> u) $ 1 = a v" if "v = vector [1, 0, 0, 0]"
+    using assms(2) assms(4) vec_basis_def vec_basis1_def vec_basis2_def vec_basis3_def vec_basis4_def 
+vector_comp(1)
+    
+
+(*
+  show "(\<Oplus>\<^bsub>real4_module\<^esub>v\<in>{}. a v \<odot>\<^bsub>real4_module\<^esub> v) = (\<chi> i. 0) \<Longrightarrow> False"
+  proof-
+    have "A \<noteq> {}"
+      using assms(4) 
+      by auto
+    thus ?thesis
+    apply (auto simp: comm_monoid.finprod_empty)
+  proof-
+    have "(\<Oplus>\<^bsub>real4_module\<^esub>v\<in>{}. a v \<odot>\<^bsub>real4_module\<^esub> v) = real4_one"
+      using real4_one_def real4_add_def comm_monoid.finprod_empty
+  using assms vec_basis_def vec_basis1_def vec_basis2_def
+vec_basis3_def vec_basis4_def
+*)
 lemma lin_indpt_vec_basis :
   shows "module_real4.lin_indpt \<O>"
 proof
   assume "module_real4.lin_dep \<O>"
-  thus "False" sorry
+  then obtain A a v where a1:"finite A" and a2:"A \<subseteq> \<O>" and a3:"a \<in> (A \<rightarrow> carrier real_ring)" and 
+    a4:"module_real4.lincomb a A = real4_zero" and a5:"v \<in> A" and a6:"a v \<noteq> 0"
+    using module_real4.lin_dep_def real4_module_def
+    by (metis partial_object.select_convs(1) real_ring_def ring_record_simps(11))
+  thus "False"
+    using lincomb_vec_basis a1 a2 a3 a5 a6 a4
+    by blast
 qed
 
 lemma gen_set_vec_basis :
