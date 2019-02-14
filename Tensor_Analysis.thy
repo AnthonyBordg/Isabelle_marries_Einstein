@@ -24,6 +24,7 @@ imports
   "HOL-Analysis.Finite_Cartesian_Product"
   "HOL-Algebra.Ring"
   VectorSpace.MonoidSums
+  HOL.Groups_Big
 begin
 
 text
@@ -437,6 +438,13 @@ lemma vector_comp:
   unfolding vector_def
   by auto
 
+lemma vec_basis_noteq_1:
+  shows "e\<^sub>1 \<noteq> e\<^sub>2" and "e\<^sub>1 \<noteq> e\<^sub>3" and "e\<^sub>1 \<noteq> e\<^sub>4"
+  using vec_basis1_def vec_basis2_def vec_basis3_def vec_basis3_def
+  apply (metis insertCI vector_comp(1) vector_space_over_itself.zero_not_in_Basis)
+  apply (metis vec_basis1_def vec_basis3_def vector_comp(1) zero_neq_one)
+  by (metis vec_basis1_def vec_basis4_def vector_comp(1) zero_neq_one)
+
 lemma lincomb_vec_basis:
   assumes "finite A" and "A \<subseteq> \<O>" and "a \<in> (A \<rightarrow> carrier real_ring)" and "v \<in> A" and "a v \<noteq> 0"
   shows "module_real4.lincomb a A \<noteq> real4_zero"
@@ -445,15 +453,51 @@ proof-
   have f1:"v = vector [1, 0, 0, 0] \<or> v = vector [0, 1, 0, 0] \<or> v = vector [0, 0, 1, 0] \<or> v = vector [0, 0, 0, 1]"
     using assms(2) assms(4) vec_basis_def vec_basis1_def vec_basis2_def vec_basis3_def vec_basis4_def sum_def
     by fastforce
-  then have f2:"\<forall>i. (\<Oplus>\<^bsub>real4_module\<^esub>u\<in>A. a u \<odot>\<^bsub>real4_module\<^esub> u) $ i = (\<Sum>x\<in>{u. u\<in>A}. a x * (x $ i))"
+  have f2:"\<forall>i. (\<Oplus>\<^bsub>real4_module\<^esub>u\<in>A. a u \<odot>\<^bsub>real4_module\<^esub> u) $ i = (\<Sum>x\<in>{u. u\<in>A}. a x * (x $ i))"
     using assms(1) assms(3) lincomb_comp module_real4.lincomb_def 
     by simp
-  then have "(\<Oplus>\<^bsub>real4_module\<^esub>u\<in>A. a u \<odot>\<^bsub>real4_module\<^esub> u) $ 1 = (\<Sum>x\<in>{u. u\<in>A}. a x * (x $ 1))"
+  then have f3:"(\<Oplus>\<^bsub>real4_module\<^esub>u\<in>A. a u \<odot>\<^bsub>real4_module\<^esub> u) $ 1 = (\<Sum>x\<in>{u. u\<in>A}. a x * (x $ 1))"
     by simp
-  then have "(\<Oplus>\<^bsub>real4_module\<^esub>u\<in>A. a u \<odot>\<^bsub>real4_module\<^esub> u) $ 1 = a v" if "v = vector [1, 0, 0, 0]"
-    using assms(2) assms(4) vec_basis_def vec_basis1_def vec_basis2_def vec_basis3_def vec_basis4_def 
-vector_comp(1)
-    
+  have f4:"a e\<^sub>1 * (e\<^sub>1 $ 1) = a e\<^sub>1"
+    by (simp add: vec_basis1_def vector_def)
+  have f5:"a e\<^sub>2 * (e\<^sub>2 $ 1) = 0" 
+    by (simp add: vec_basis2_def vector_def)
+  have f6:"a e\<^sub>3 * (e\<^sub>3 $ 1) = 0" 
+    by (simp add: vec_basis3_def vector_def)
+  have f7:"a e\<^sub>4 * (e\<^sub>4 $ 1) = 0" 
+    by (simp add: vec_basis4_def vector_def)
+  have f8: "\<forall>x. x \<in> A \<longrightarrow> x = e\<^sub>1 \<or> x = e\<^sub>2 \<or> x = e\<^sub>3 \<or> x = e\<^sub>4"
+    using assms(2) vec_basis_def 
+    by auto
+  have f9:"(\<Sum>x\<in>\<O>. a x * (x $ 1)) = a e\<^sub>1"
+    by (smt Collect_cong Collect_mem_eq f4 f5 f6 f7 insertE insert_def singletonD sum.neutral sum_insert 
+        vec_basis_def)
+  have "e\<^sub>1 \<in> A" if "v = e\<^sub>1"
+    using that assms(4) 
+    by simp
+  then have "a v * (v $ 1) = a e\<^sub>1" if "v = e\<^sub>1"
+    using that f4 
+    by simp
+  have "finite \<O>"
+    by (simp add: vec_basis_def)
+  then have f10:"(\<Sum>x\<in>A-{e\<^sub>2,e\<^sub>3,e\<^sub>4}. a x * (x $ 1)) = (\<Sum>x\<in>A. a x * (x $ 1))" if "v = e\<^sub>1"
+    using that assms(1) f5 f6 f7
+    by (smt Diff_iff Diff_subset empty_iff insertE sum.mono_neutral_right)
+  have "A-{e\<^sub>2,e\<^sub>3,e\<^sub>4} = {e\<^sub>1}" if "v = e\<^sub>1"
+    using that assms(4) assms(2) vec_basis_def vec_basis_noteq_1
+    by fastforce
+  then have "(\<Sum>x\<in>A-{e\<^sub>2,e\<^sub>3,e\<^sub>4}. a x * (x $ 1)) = a v" if "v = e\<^sub>1"
+    using that f4 
+    by simp 
+  then have "(\<Sum>x\<in>A. a x * (x $ 1)) = a v" if "v = e\<^sub>1"
+    using that f10 
+    by simp
+  then have "(\<Oplus>\<^bsub>real4_module\<^esub>u\<in>A. a u \<odot>\<^bsub>real4_module\<^esub> u) $ 1 \<noteq> 0" if "v = e\<^sub>1"
+    using that f3 assms(5) 
+    by simp
+  then have "module_real4.lincomb a A \<noteq> real4_zero" if "v = e\<^sub>1"
+    using that real4_zero_def
+    by (metis module_real4.lincomb_def zero_index zero_vec_def) 
 
 (*
   show "(\<Oplus>\<^bsub>real4_module\<^esub>v\<in>{}. a v \<odot>\<^bsub>real4_module\<^esub> v) = (\<chi> i. 0) \<Longrightarrow> False"
