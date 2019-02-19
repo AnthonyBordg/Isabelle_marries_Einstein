@@ -287,6 +287,15 @@ definition real4_add :: "[real^4, real^4] \<Rightarrow> real^4" where
 definition real4_zero :: "real^4" where
 "real4_zero \<equiv> \<chi> i. 0"
 
+lemma real4_add_zero_left:
+  shows "real4_add real4_zero x = x"
+  using real4_add_def
+  by (simp add: real4_zero_def)
+
+lemma real4_add_zero_right:
+  shows "real4_add x real4_zero = x"
+  using real4_add_def
+  by (simp add: real4_zero_def)
 
 definition real4_monoid :: "(_, _) monoid_scheme" where
 "real4_monoid \<equiv> \<lparr>carrier = UNIV::(real^4) set, mult = ( * ), one = 1, 
@@ -378,12 +387,75 @@ definition vec_basis_set ::"(real^4) set" ("\<O>") where
 "vec_basis_set \<equiv> {e \<^sub>1, e \<^sub>2, e \<^sub>3, e \<^sub>4}"
 
 lemma sum_insert:
-  assumes "x \<notin> F"
-  shows "(\<Sum>y\<in>insert x F. P y) = (\<Sum>y\<in>F. P y) + P x" sorry
+  assumes "x \<notin> F" and "finite F"
+  shows "(\<Sum>y\<in>insert x F. P y) = (\<Sum>y\<in>F. P y) + P x"
+  using assms insert_def
+  by (simp add: add.commute)  
+
+lemma finsum_to_sum:
+  fixes F::"(real^4) set"
+  assumes "finite F" and "P \<in> (F \<rightarrow> carrier real4_module)"
+  shows "(\<Oplus>\<^bsub>real4_module\<^esub>v\<in>F. P v) = (\<Sum>v\<in>F. P v)"
+  using assms
+proof induct
+  case empty
+  then show "P \<in> {} \<rightarrow> carrier real4_module \<Longrightarrow> finsum real4_module P {} = sum P {}"
+    by (metis module_real4.add.finprod_empty real4_module_def real4_zero_def ring_record_simps(11) 
+        sum.empty zero_vec_def)
+next
+  case (insert x F)
+  then show "\<And>x F. finite F \<Longrightarrow>
+              x \<notin> F \<Longrightarrow>
+                (P \<in> F \<rightarrow> carrier real4_module \<Longrightarrow> finsum real4_module P F = sum P F) \<Longrightarrow>
+                  P \<in> insert x F \<rightarrow> carrier real4_module \<Longrightarrow>
+                    finsum real4_module P (insert x F) = sum P (insert x F)"
+  proof-
+    fix x::"real^4" and F::"(real^4) set"
+    assume a1:"finite F" and a2:"x \<notin> F" and rec:"P \<in> F \<rightarrow> carrier real4_module \<Longrightarrow> finsum real4_module P F = sum P F"
+      and a3:"P \<in> insert x F \<rightarrow> carrier real4_module"
+    then have "sum P (insert x F) = P x + sum P F"
+      using Groups_Big.sum_Un insert_def
+      by simp
+    then have f1:"sum P (insert x F) = P x + finsum real4_module P F"
+      using rec a3 
+      by simp
+    have "finsum real4_module P (insert x F) = P x + finsum real4_module P F"
+    proof-
+      have "finsum real4_module P (insert x F) = P x \<oplus>\<^bsub>real4_module\<^esub> finsum real4_module P F"
+        using module_real4.finsum_insert[of "F" "x" "P"] a1 a2 a3 insert_def
+        by simp
+      thus ?thesis
+        using real4_module_def real4_add_def
+        by (smt plus_vec_def ring_record_simps(12))
+    qed
+   thus "finsum real4_module P (insert x F) = sum P (insert x F)"
+     using f1 
+     by simp
+ qed
+qed
+
 
 lemma finsum_insert:
   assumes "x \<notin> F" and "finite F"
-  shows "(\<Oplus>\<^bsub>real4_module\<^esub>v\<in>insert x F. P v) = (\<Oplus>\<^bsub>real4_module\<^esub>v\<in>F. P v) + P x" sorry
+  shows "(\<Oplus>\<^bsub>real4_module\<^esub>v\<in>insert x F. P v) =  P x + (\<Oplus>\<^bsub>real4_module\<^esub>v\<in>F. P v)"
+proof-
+  have "(\<Sum>y\<in>({x} \<inter> F). P y) = real4_zero"
+    using abelian_monoid.finsum_empty assms(1)
+    by (simp add: real4_zero_def zero_vec_def)
+  then have f1:"(\<Oplus>\<^bsub>real4_module\<^esub>v\<in>({x}\<inter>F). P v) = real4_zero"
+    using finsum_to_sum assms(1) 
+    by force
+  then have "(\<Oplus>\<^bsub>real4_module\<^esub>v\<in>insert x F. P v) = 
+    P x + (\<Oplus>\<^bsub>real4_module\<^esub>v\<in>F. P v) - (\<Oplus>\<^bsub>real4_module\<^esub>v\<in>({x}\<inter>F). P v)"
+    using Groups_Big.sum_Un finsum_to_sum
+    by (smt Pi_I UNIV_I add.right_neutral add_diff_cancel_left' assms(1) assms(2) empty_iff 
+        finite.intros(1) module_real4.finsum_insert partial_object.select_convs(1) plus_vec_def 
+        real4_add_def real4_module_def real4_zero_def ring_record_simps(12) sum.insert_if sum_clauses(1) 
+        sum_insert zero_vec_def)
+  thus ?thesis
+    using f1
+    by (simp add: real4_zero_def zero_vec_def)
+qed
 
 lemma lincomb_comp :
   assumes "finite A" and "a \<in> (A \<rightarrow> carrier real_ring)"
@@ -406,7 +478,7 @@ next
     fix x F i
     assume a1:"finite F" and a2:"x \<notin> F" and rec:"(\<And>i. (\<Oplus>\<^bsub>real4_module\<^esub>v\<in>F. a v \<odot>\<^bsub>real4_module\<^esub> v) $ i = (\<Sum>x\<in>F. a x * x $ i))"
     have f1:"(\<Sum>x\<in>insert x F. a x * x $ i) = (\<Sum>x\<in>F. a x * x $ i) + a x * x $ i"
-      using a2
+      using a1 a2
       by (simp add: sum_insert)
     have f2:"(a x \<odot>\<^bsub>real4_module\<^esub> x) $ i = a x * x $ i"
       using real4_smult_def
