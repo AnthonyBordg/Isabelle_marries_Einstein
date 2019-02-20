@@ -688,9 +688,67 @@ proof
     by blast
 qed
 
-lemma gen_set_vec_basis :
-  shows "module_real4.gen_set \<O>" sorry
+lemma vec_to_comp_basis:
+  fixes x::"real^4"
+  assumes "a \<in> (\<O> \<rightarrow> carrier real_ring)" and "a (e \<^sub>1) = x $ 1" and "a (e \<^sub>2) = x $ 2" and "a (e \<^sub>3) = x $ 3" 
+    and "a (e \<^sub>4) = x $ 4"
+  shows "a (e \<^sub>1) \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>1) = vector [x $ 1, 0, 0, 0]" and 
+    "a (e \<^sub>2) \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>2) = vector [0, x $ 2, 0, 0]" and 
+    "a (e \<^sub>3) \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>3) = vector [0, 0, x $ 3, 0]" and
+    "a (e \<^sub>4) \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>4) = vector [0, 0, 0, x $ 4]" sorry
 
+lemma vec_to_sum_comp_basis:
+  fixes x::"real^4"
+  assumes "a \<in> (\<O> \<rightarrow> carrier real_ring)" and "a (e \<^sub>1) = x $ 1" and "a (e \<^sub>2) = x $ 2" and "a (e \<^sub>3) = x $ 3" 
+    and "a (e \<^sub>4) = x $ 4"
+  shows "(\<Oplus>\<^bsub>real4_module\<^esub>v\<in>\<O>. a v \<odot>\<^bsub>real4_module\<^esub> v) = vector [x $ 1, x $ 2, x $ 3, x $ 4]" sorry
+
+lemma eta_vector:
+  fixes x::"real^4"
+  shows "vector [x $ 1, x $ 2, x $ 3, x $ 4] = x" sorry
+
+lemma gen_set_vec_basis :
+  shows "module_real4.gen_set \<O>"
+  apply (auto simp: module_real4.span_def real4_module_def)
+proof-
+  fix x::"real^4"
+  define a where d1:"a \<equiv> \<lambda>v\<in>\<O>. if v = vec_basis (1::nat) then (x $ 1) else
+  if v = e \<^sub>2 then x $ 2 else
+    if v = e \<^sub>3 then x $ 3 else
+      if v = e \<^sub>4 then x $ 4 else
+        undefined"
+  then have f1:"a \<in> (\<O> \<rightarrow> carrier real_ring)"
+    by (simp add: real_ring_def)
+  then have "x = (\<Oplus>\<^bsub>real4_module\<^esub>v\<in>\<O>. a v \<odot>\<^bsub>real4_module\<^esub> v)"
+  proof-
+    have f2:"a (e \<^sub>1) = x $ 1"
+      using d1
+      by (simp add: vec_basis_set_def)
+    have f3:"a (e \<^sub>2) = x $ 2"
+      using d1 vec_basis_noteq_1(1) vec_basis_set_def 
+      by auto
+    have f4:"a (e \<^sub>3) = x $ 3"
+      using d1 vec_basis_noteq_2(2) vec_basis_noteq_3(1) vec_basis_set_def 
+      by auto
+    have f5:"a (e \<^sub>4) = x $ 4"
+      using d1 vec_basis_noteq_4(1) vec_basis_noteq_4(2) vec_basis_noteq_4(3) vec_basis_set_def 
+      by auto
+    thus ?thesis
+      using f1 f2 f3 f4 vec_to_sum_comp_basis eta_vector 
+      by auto
+  qed
+  then have "x \<in> {module_real4.lincomb a \<O>}"
+    using module.lincomb_def[of "real_ring" "real4_module" "a" "\<O>"]
+    by (simp add: module_real4.module_axioms) 
+  thus "x \<in> LinearCombinations.module.span real_ring
+              \<lparr>carrier = UNIV, monoid.mult = real4_mult, one = real4_one, zero = real4_zero,
+                 add = real4_add, smult = real4_smult\<rparr>
+              \<O>"
+    using LinearCombinations.module.span_def[of "real_ring" "real4_module" "\<O>"] f1
+    by (metis (mono_tags, lifting) finite.emptyI finite.insertI mem_Collect_eq module_real4.module_axioms 
+        real4_module_def singletonD subset_refl vec_basis_set_def)
+qed
+    
 lemma vec_basis_in_univ :
   shows "\<O> \<subseteq> carrier real4_module" sorry
 
@@ -743,10 +801,10 @@ the application of the one_form to the basis vectors.
 \<close>
 
 definition one_form_nth :: "one_form \<Rightarrow> nat \<Rightarrow> real" ("_ \<section> _") where
-"one_form_nth f n \<equiv> if n=1 then f(e\<^sub>1) else
-  if n=2 then f(e\<^sub>2) else
-  if n=3 then f(e\<^sub>3) else
-  if n=4 then f(e\<^sub>4) else undefined"
+"one_form_nth f n \<equiv> if n=1 then f(e \<^sub>1) else
+  if n=2 then f(e \<^sub>2) else
+  if n=3 then f(e \<^sub>3) else
+  if n=4 then f(e \<^sub>4) else undefined"
 
 definition one_form_nth' :: "one_form \<Rightarrow> real \<Rightarrow> nat \<Rightarrow> real" (" _ \<section> _ _") where
 "one_form_nth' f v n \<equiv> if n=1 then f(e\<^sub>1'(v)) else
