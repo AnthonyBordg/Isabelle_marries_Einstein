@@ -690,12 +690,61 @@ qed
 
 lemma vec_to_comp_basis:
   fixes x::"real^4"
-  assumes "a \<in> (\<O> \<rightarrow> carrier real_ring)" and "a (e \<^sub>1) = x $ 1" and "a (e \<^sub>2) = x $ 2" and "a (e \<^sub>3) = x $ 3" 
+  assumes "a \<in> (\<O> \<rightarrow> carrier real_ring)" and "a (e \<^sub>1) = x $ (1::4)" and "a (e \<^sub>2) = x $ 2" and "a (e \<^sub>3) = x $ 3" 
     and "a (e \<^sub>4) = x $ 4"
-  shows "a (e \<^sub>1) \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>1) = (\<chi> i. if i = 1 then x $ 1 else 0)" and 
-    "a (e \<^sub>2) \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>2) = (\<chi> i. if i = 2 then x $ 2 else 0)" and 
-    "a (e \<^sub>3) \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>3) = (\<chi> i. if i = 3 then x $ 3 else 0)" and
-    "a (e \<^sub>4) \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>4) = (\<chi> i. if i = 4 then x $ 4 else 0)" sorry
+  shows "a (e \<^sub>1) \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>1) = vector [x $ 1, 0, 0, 0]" and 
+    "a (e \<^sub>2) \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>2) = vector [0, x $ 2, 0, 0]" and 
+    "a (e \<^sub>3) \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>3) = vector [0, 0, x $ 3, 0]" and
+    "a (e \<^sub>4) \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>4) = vector [0, 0, 0, x $ 4]" sorry
+
+lemma vector_eta:
+  fixes x::"real^4"
+  shows "(\<chi> i. if i = 1 then x $ 1 else 
+    if i = 2 then x $ 2 else 
+      if i = 3 then x $ 3 else 
+        if i = 4 then x $ 4 else 0) = 
+  vector [x $ 1, x $ 2, x $ 3, x $ 4]"
+  apply (auto simp: vec_eq_iff vector_def).
+
+lemma exhaust_4:
+  fixes x :: 4
+  shows "x = 1 \<or> x = 2 \<or> x = 3 \<or> x = 4"
+proof (induct x)
+  case (of_int z)
+  then have "0 \<le> z" and "z < 4" 
+    by simp_all
+  then have "z = 0 \<or> z = 1 \<or> z = 2 \<or> z = 3" 
+    by arith
+  then show ?case 
+    by auto
+qed
+
+lemma forall_4: 
+  shows "(\<forall>i::4. P i) \<longleftrightarrow> P 1 \<and> P 2 \<and> P 3 \<and> P 4"
+  by (metis exhaust_4)
+
+lemma UNIV_4: 
+  shows "UNIV = {1::4, 2::4, 3::4, 4::4}"
+  using exhaust_4 
+  by auto
+
+lemma sum_4: 
+  shows "sum f (UNIV::4 set) = f 1 + f 2 + f 3 + f 4"
+  unfolding UNIV_4 
+  by (simp add: ac_simps)
+
+lemma vector_eta_bis:
+  fixes x::"real^4"
+  shows "vector [x $ 1, x $ 2, x $ 3, x $ 4] = x"
+  apply (auto simp: vec_eq_iff vector_def)
+  using exhaust_4 
+  by auto
+
+lemma vector_add:
+  shows "(vector [x1, x2, x3, x4]::(real, _) vec) + vector [y1, y2, y3, y4] = 
+    vector [x1 + y1, x2 + y2, x3 + y3, x4 + y4]"
+  apply (auto simp: vec_eq_iff)
+  by (simp add: vector_comp(1) vec_lambda_inverse vector_def)
 
 lemma vec_to_sum_comp_basis:
   fixes x::"real^4"
@@ -710,45 +759,23 @@ a (e \<^sub>2) \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>2) + a (e \<^sub>3)
         insertE is_num_normalize(1) sum.empty vec_basis_noteq_1(1) vec_basis_noteq_1(2) 
         vec_basis_noteq_1(3) vec_basis_noteq_2(2) vec_basis_noteq_2(3) vec_basis_noteq_3(3))
   have "a (e \<^sub>1) \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>1) + a (e \<^sub>2) \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>2) + a (e \<^sub>3) \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>3) 
-+ a (e \<^sub>4) \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>4) = (\<chi> i. if i = 1 then x $ 1 else 0) + (\<chi> i. if i = 2 then x $ 2 else 0) 
-+ (\<chi> i. if i = 3 then x $ 3 else 0) + (\<chi> i. if i = 4 then x $ 4 else 0)"
++ a (e \<^sub>4) \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>4) = vector [x $ 1, 0, 0, 0] + vector [0, x $ 2, 0, 0]
++ vector [0, 0, x $ 3, 0] + vector [0, 0, 0, x $ 4]"
     by (smt One_nat_def UNIV_I assms vec_eq_iff vec_lambda_inverse vec_to_comp_basis)
-  then have "(\<Oplus>\<^bsub>real4_module\<^esub>v\<in>\<O>. a v \<odot>\<^bsub>real4_module\<^esub> v) = (\<chi> i. if i = 1 then x $ 1 else 0) + 
-(\<chi> i. if i = 2 then x $ 2 else 0) + (\<chi> i. if i = 3 then x $ 3 else 0) + (\<chi> i. if i = 4 then x $ 4 else 0)"
+  then have f2:"(\<Oplus>\<^bsub>real4_module\<^esub>v\<in>\<O>. a v \<odot>\<^bsub>real4_module\<^esub> v) = vector [x $ 1, 0, 0, 0] + vector [0, x $ 2, 0, 0]
++ vector [0, 0, x $ 3, 0] + vector [0, 0, 0, x $ 4]"
     using f1 
     by simp
-  have "(\<chi> i. if i = 1 then x $ 1 else 0) + (\<chi> i. if i = 2 then x $ 2 else 0) + 
-(\<chi> i. if i = 3 then x $ 3 else 0) + (\<chi> i. if i = 4 then x $ 4 else 0) = 
-(\<chi> i. if i = 1 then x $ 1 else 
-  if i = 2 then x $ 2 else 
-    if i = 3 then x $ 3 else 
-      if i = 4 then x $ 4 else 0)"
-    using real4_add_def vec_eq_iff
-  then have "(\<Oplus>\<^bsub>real4_module\<^esub>v\<in>\<O>. a v \<odot>\<^bsub>real4_module\<^esub> v) = (\<chi> i. x $ i)"
-    apply (auto simp: vec_eq_iff real4_add_def)
-(*
-lemma eta_vector:
-  fixes x::"(real)^4"
-  shows "(\<chi> i. x $ i) = x"
-  using vec_lambda_eta 
-  by simp
-  apply (auto simp: vec_eq_iff)
-proof-
-  have f1:"vector [x $ 1, x $ 2, x $ 3, x $ 4] $ (1::4) = x $ 1"
-    by (simp add: vector_comp(1))
-  have f2:"vector [x $ 1, x $ 2, x $ 3, x $ 4] $ (2::4) = x $ 2"
-    by (simp add: vector_comp(2))
-  have f3:"vector [x $ 1, x $ 2, x $ 3, x $ 4] $ (3::4) = x $ 3"
-    by (simp add: vector_comp(3))
-  have f4:"vector [x $ 1, x $ 2, x $ 3, x $ 4] $ (4::4) = x $ 4"
-    by (simp add: vector_comp(4))
-  have f5:"\<forall>i. i\<noteq>1 \<longrightarrow> i\<noteq>2 \<longrightarrow> i\<noteq>3 \<longrightarrow> i\<noteq>4 \<longrightarrow> vector [x $ 1, x $ 2, x $ 3, x $ 4] $ i = 0"
-    apply (auto simp: vector_def).
-  have "\<forall>i. i\<noteq>1 \<longrightarrow> i\<noteq>2 \<longrightarrow> i\<noteq>3 \<longrightarrow> i\<noteq>4 \<longrightarrow> x $ i = 0"
-      apply (auto simp: vec_def)
-  thus "\<And>i. vector [x $ 1, x $ 2, x $ 3, x $ 4] $ i = x $ i"
-    using f1 f2 f3 f4
-*)    
+  have " vector [x $ 1, 0, 0, 0] + vector [0, x $ 2, 0, 0] + vector [0, 0, x $ 3, 0] + vector [0, 0, 0, x $ 4] 
+= vector [x $ 1, x $ 2, x $ 3, x $ 4]"
+    by (simp add: vector_add)
+  then have f3:"(\<Oplus>\<^bsub>real4_module\<^esub>v\<in>\<O>. a v \<odot>\<^bsub>real4_module\<^esub> v) =  vector [x $ 1, x $ 2, x $ 3, x $ 4]"
+    using f2 
+    by simp 
+  thus "(\<Oplus>\<^bsub>real4_module\<^esub>v\<in>\<O>. a v \<odot>\<^bsub>real4_module\<^esub> v) = x"
+    using vector_eta_bis
+    by simp
+qed
 
 lemma gen_set_vec_basis :
   shows "module_real4.gen_set \<O>"
