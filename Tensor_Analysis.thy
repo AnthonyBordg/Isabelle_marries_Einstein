@@ -688,15 +688,6 @@ proof
     by blast
 qed
 
-lemma vec_to_comp_basis:
-  fixes x::"real^4"
-  assumes "a \<in> (\<O> \<rightarrow> carrier real_ring)" and "a (e \<^sub>1) = x $ (1::4)" and "a (e \<^sub>2) = x $ 2" and "a (e \<^sub>3) = x $ 3" 
-    and "a (e \<^sub>4) = x $ 4"
-  shows "a (e \<^sub>1) \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>1) = vector [x $ 1, 0, 0, 0]" and 
-    "a (e \<^sub>2) \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>2) = vector [0, x $ 2, 0, 0]" and 
-    "a (e \<^sub>3) \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>3) = vector [0, 0, x $ 3, 0]" and
-    "a (e \<^sub>4) \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>4) = vector [0, 0, 0, x $ 4]" sorry
-
 lemma vector_eta:
   fixes x::"real^4"
   shows "(\<chi> i. if i = 1 then x $ 1 else 
@@ -745,6 +736,43 @@ lemma vector_add:
     vector [x1 + y1, x2 + y2, x3 + y3, x4 + y4]"
   apply (auto simp: vec_eq_iff)
   by (simp add: vector_comp(1) vec_lambda_inverse vector_def)
+
+lemma vec_to_comp_basis:
+  fixes x::"real^4"
+  assumes "a \<in> (\<O> \<rightarrow> carrier real_ring)" and "a (e \<^sub>1) = x $ 1" and "a (e \<^sub>2) = x $ 2" and "a (e \<^sub>3) = x $ 3" 
+    and "a (e \<^sub>4) = x $ 4"
+  shows "a (e \<^sub>1) \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>1) = vector [x $ 1, 0, 0, 0]" and 
+    "a (e \<^sub>2) \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>2) = vector [0, x $ 2, 0, 0]" and 
+    "a (e \<^sub>3) \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>3) = vector [0, 0, x $ 3, 0]" and
+    "a (e \<^sub>4) \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>4) = vector [0, 0, 0, x $ 4]"
+proof-
+  have "a (e \<^sub>1) \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>1) = vector [x $ 1 * 1, x $ 1 * 0, x $ 1 * 0, x $ 1 * 0]"
+    using assms(2) vec_basis_def real4_module_def real4_smult_def vector_eta
+    by (smt UNIV_I module.select_convs(1) mult_cancel_left1 mult_cancel_right1 vec_lambda_inverse 
+vector_comp(1) vector_comp(2) vector_comp(3) vector_comp(4) vector_eta_bis)
+  then show "a (e \<^sub>1) \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>1) = vector [x $ 1, 0, 0, 0]" 
+    by simp
+  have "a (e \<^sub>2) \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>2) = vector [x $ 2 * 0, x $ 2 * 1, x $ 2 * 0, x $ 2 * 0]"
+    using assms(3) vec_basis_def real4_module_def real4_smult_def vector_eta
+    by (smt UNIV_I module.select_convs(1) mult_cancel_left1 mult_cancel_right1 numeral_eq_one_iff 
+vec_lambda_inverse vector_comp(1) vector_comp(2) vector_comp(3) vector_comp(4) vector_eta_bis)
+  then show "a (e \<^sub>2) \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>2) = vector [0, x $ 2, 0, 0]" 
+    by simp
+  have "a (e \<^sub>3) \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>3) = vector [x $ 3 * 0, x $ 3 * 0, x $ 3 * 1, x $ 3 * 0]"
+    using assms(4) vec_basis_def real4_module_def real4_smult_def vector_eta
+    by (smt UNIV_I module.select_convs(1) mult_cancel_left1 mult_cancel_right1 numeral_eq_one_iff 
+rel_simps(72) semiring_norm(86) vec_lambda_inverse vector_comp(1) vector_comp(2) vector_comp(3) 
+vector_comp(4) vector_eta_bis)
+  then show "a (e \<^sub>3) \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>3) = vector [0, 0, x $ 3, 0]" 
+    by simp
+  have "a (e \<^sub>4) \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>4) = vector [x $ 4 * 0, x $ 4 * 0, x $ 4 * 0, x $ 4 * 1]"
+    using assms(5) vec_basis_def real4_module_def real4_smult_def vector_eta
+    by (smt UNIV_I module.select_convs(1) mult_cancel_left1 mult_cancel_right1 numeral_eq_one_iff 
+rel_simps(72) semiring_norm(83) vec_lambda_inverse vector_comp(1) vector_comp(2) vector_comp(3) 
+vector_comp(4) vector_eta_bis)
+  then show "a (e \<^sub>4) \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>4) = vector [0, 0, 0, x $ 4]" 
+    by simp
+qed
 
 lemma vec_to_sum_comp_basis:
   fixes x::"real^4"
@@ -861,6 +889,58 @@ definition vec_basis4' :: "real \<Rightarrow> real^4" ("e\<^sub>4' (_)") where
 
 definition vec_basis' :: "real \<Rightarrow> (real^4) set" ("\<O>' (_)") where
 "vec_basis' v \<equiv> {e\<^sub>1'(v), e\<^sub>2'(v), e\<^sub>3'(v), e\<^sub>4'(v)}"
+
+lemma vec_basis1'_to_vec_basis:
+  fixes v::"real"
+  shows "vec_basis1' v = \<gamma> v \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>1) + v * \<gamma> v \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>2)"
+  using vec_basis1'_def vec_basis_def real4_module_def real4_smult_def
+  by (smt UNIV_I module.select_convs(1) mult_cancel_left1 mult_cancel_right1 numeral_eq_one_iff 
+vec_lambda_inverse vector_add vector_comp vector_eta_bis)
+
+lemma vec_basis2'_to_vec_basis:
+  fixes v::"real"
+  shows "vec_basis2' v = v * \<gamma> v \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>1) + \<gamma> v \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>2)"
+  using vec_basis2'_def vec_basis_def real4_module_def real4_smult_def
+  by (smt UNIV_I module.select_convs(1) mult_cancel_left1 mult_cancel_right1 numeral_eq_one_iff 
+vec_lambda_inverse vector_add vector_comp vector_eta_bis)
+
+lemma vec_basis3'_to_vec_basis:
+  fixes v::"real"
+  shows "vec_basis3' v = e \<^sub>3"
+  using vec_basis3'_def vec_basis_def
+  by simp
+
+lemma vec_basis4'_to_vec_basis:
+  fixes v::"real"
+  shows "vec_basis4' v = e \<^sub>4"
+  using vec_basis4'_def vec_basis_def 
+  by simp
+
+lemma lin_indpt_vec_basis' :
+  fixes v::"real"
+  shows "module_real4.lin_indpt \<O>' (v)"
+proof
+  assume h1:"module_real4.lin_dep \<O>' (v)"
+  then obtain A a u where a1:"finite A" and a2:"A \<subseteq> \<O>' (v)" and a3:"a \<in> (A \<rightarrow> carrier real_ring)" and 
+    a4:"module_real4.lincomb a A = real4_zero" and a5:"u \<in> A" and a6:"a u \<noteq> 0"
+    using module_real4.lin_dep_def real4_module_def
+    by (metis partial_object.select_convs(1) real_ring_def ring_record_simps(11))
+  then have "module_real4.lin_dep \<O>" if h2:"e\<^sub>1'(v) \<notin> A \<and> e\<^sub>2'(v) \<notin> A"
+  proof-
+    have "A \<subseteq> \<O>"
+      using h2 a2 vec_basis'_def vec_basis_set_def vec_basis3'_to_vec_basis vec_basis4'_to_vec_basis
+      by auto
+    thus ?thesis
+      using h2 a1 a3 a4 a5 a6 module.lin_dep_def
+
+
+  hence "module_real4.lin_dep \<O>"
+    using a vec_basis'_def vec_basis_set_def vec_basis1'_to_vec_basis vec_basis2'_to_vec_basis
+vec_basis3'_to_vec_basis vec_basis4'_to_vec_basis module.lin_dep_def
+  thus "False"
+    using lincomb_vec_basis a1 a2 a3 a5 a6 a4 vec_basis1'_to_vec_basis vec_basis2'_to_vec_basis
+    
+qed
 
 lemma basis_vec_basis' :
   fixes v :: real
