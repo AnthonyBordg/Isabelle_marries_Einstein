@@ -916,6 +916,62 @@ lemma vec_basis4'_to_vec_basis:
   using vec_basis4'_def vec_basis_def 
   by simp
 
+lemma lincomb_vec_basis'_to_lin_dep_vec_basis_1:
+  fixes v::"real"
+  assumes "finite A" and "A \<subseteq> \<O>' (v)" and "a \<in> (A \<rightarrow> carrier real_ring)" and 
+"module_real4.lincomb a A = real4_zero" and "u \<in> A" and "a u \<noteq> 0" and "e\<^sub>1'(v) \<notin> A \<and> e\<^sub>2'(v) \<notin> A"
+  shows "module_real4.lin_dep \<O>"
+proof-
+  have "A \<subseteq> \<O>"
+    using assms(7) assms(2) vec_basis'_def vec_basis_set_def vec_basis3'_to_vec_basis 
+      vec_basis4'_to_vec_basis
+    by auto
+  thus ?thesis
+      using assms module.lin_dep_def[of "real_ring" "real4_module" "\<O>"]
+      by (metis module_real4.module_axioms partial_object.select_convs(1) real4_module_def 
+          real_ring_def ring_record_simps(11))
+qed
+
+lemma lincomb_vec_basis'_to_lin_dep_vec_basis_2:
+  fixes v::"real"
+  assumes "finite A" and "A \<subseteq> \<O>' (v)" and "a \<in> (A \<rightarrow> carrier real_ring)" and 
+"module_real4.lincomb a A = real4_zero" and "u \<in> A" and "a u \<noteq> 0" and "e\<^sub>1'(v) \<in> A \<or> e\<^sub>2'(v) \<in> A"
+  shows "module_real4.lin_dep \<O>"
+proof-
+  define B where d1:"B \<equiv> (A - {e\<^sub>1'(v), e\<^sub>2'(v)}) \<union> {e \<^sub>1, e \<^sub>2}"
+  then have "B \<subseteq> \<O>"
+    using assms(2) vec_basis'_def vec_basis_set_def vec_basis3'_to_vec_basis vec_basis4'_to_vec_basis
+    by (smt Diff_insert2 Diff_subset_conv Un_commute Un_empty_right Un_mono insert_def subset_refl)
+  have "finite B"
+    using d1 assms(1)
+    by simp
+  have f1:"module_real4.lin_dep \<O>" if h1:"e\<^sub>1'(v) \<in> A \<and> e\<^sub>2'(v) \<notin> A" sorry
+  (*proof-
+    define b where d2:"b \<equiv> \<lambda>w. if w = e \<^sub>1 then a (vec_basis1' v) * \<gamma> (v) else 
+  if w = e \<^sub>2 then a (vec_basis1' v) * v * \<gamma> (v) else
+    if w = e \<^sub>3 then a e\<^sub>3'(v) else
+      if w = e \<^sub>4 then  a e\<^sub>4'(v) else undefined"
+    then have "b \<in> (B \<rightarrow> carrier real_ring)"
+      by (simp add: real_ring_def)
+    have "module_real4.lincomb a A = module_real4.lincomb b B"
+    proof-
+       using assms(4) d1 d2 vec_basis1'_to_vec_basis module.lincomb_def[of "real_ring" "real4_module"] h1 
+vec_basis3'_to_vec_basis vec_basis4'_to_vec_basis real4_module_def real4_add_def real4_smult_def *)
+  have f2:"module_real4.lin_dep \<O>" if h2:"e\<^sub>1'(v) \<notin> A \<and> e\<^sub>2'(v) \<in> A" sorry
+  have "module_real4.lin_dep \<O>" if h3:"e\<^sub>1'(v) \<in> A \<and> e\<^sub>2'(v) \<in> A" sorry
+  thus ?thesis
+    using f1 f2 assms(7)
+    by blast
+qed
+
+lemma lincomb_vec_basis'_to_lin_dep_vec_basis:
+  fixes v::"real"
+  assumes "finite A" and "A \<subseteq> \<O>' (v)" and "a \<in> (A \<rightarrow> carrier real_ring)" and 
+"module_real4.lincomb a A = real4_zero" and "u \<in> A" and "a u \<noteq> 0"
+  shows "module_real4.lin_dep \<O>"
+    using assms lincomb_vec_basis'_to_lin_dep_vec_basis_1 lincomb_vec_basis'_to_lin_dep_vec_basis_2 sledgehammer
+    by metis
+
 lemma lin_indpt_vec_basis' :
   fixes v::"real"
   shows "module_real4.lin_indpt \<O>' (v)"
@@ -925,21 +981,12 @@ proof
     a4:"module_real4.lincomb a A = real4_zero" and a5:"u \<in> A" and a6:"a u \<noteq> 0"
     using module_real4.lin_dep_def real4_module_def
     by (metis partial_object.select_convs(1) real_ring_def ring_record_simps(11))
-  then have "module_real4.lin_dep \<O>" if h2:"e\<^sub>1'(v) \<notin> A \<and> e\<^sub>2'(v) \<notin> A"
-  proof-
-    have "A \<subseteq> \<O>"
-      using h2 a2 vec_basis'_def vec_basis_set_def vec_basis3'_to_vec_basis vec_basis4'_to_vec_basis
-      by auto
-    thus ?thesis
-      using h2 a1 a3 a4 a5 a6 module.lin_dep_def
-
-
-  hence "module_real4.lin_dep \<O>"
-    using a vec_basis'_def vec_basis_set_def vec_basis1'_to_vec_basis vec_basis2'_to_vec_basis
-vec_basis3'_to_vec_basis vec_basis4'_to_vec_basis module.lin_dep_def
+  then have "module_real4.lin_dep \<O>"
+    using a1 a2 a3 a4 a5 a6 lincomb_vec_basis'_to_lin_dep_vec_basis 
+    by simp
   thus "False"
-    using lincomb_vec_basis a1 a2 a3 a5 a6 a4 vec_basis1'_to_vec_basis vec_basis2'_to_vec_basis
-    
+    using lin_indpt_vec_basis 
+    by blast
 qed
 
 lemma basis_vec_basis' :
