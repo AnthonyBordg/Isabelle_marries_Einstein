@@ -874,6 +874,13 @@ Then, one applies the Lorentz transformation to get a second basis.
 definition lorentz_factor :: "real \<Rightarrow> real" ("\<gamma> _") where
 "lorentz_factor v \<equiv> 1/sqrt(1 - v\<^sup>2)"
 
+lemma Lorentz_factor_not_zero:
+  fixes v::"real" 
+  assumes "v \<noteq> 1" and "v \<noteq> -1"
+  shows "\<gamma> (v) \<noteq> 0"
+  using lorentz_factor_def assms
+  by (simp add: power2_eq_1_iff)
+
 text \<open>The transform for components of vectors.\<close>
 
 definition vec_nth' :: "real^4 \<Rightarrow> real \<Rightarrow> nat \<Rightarrow> real" ("_ $ _ _") where
@@ -943,6 +950,7 @@ lemma lincomb_vec_basis'_to_lin_dep_vec_basis_2:
   fixes v::"real"
   assumes "finite A" and "A \<subseteq> \<O>' (v)" and "a \<in> (A \<rightarrow> carrier real_ring)" and 
 "module_real4.lincomb a A = real4_zero" and "u \<in> A" and "a u \<noteq> 0" and "e\<^sub>1'(v) \<in> A \<or> e\<^sub>2'(v) \<in> A"
+and "v \<noteq> 1" and "v \<noteq> -1"
   shows "module_real4.lin_dep \<O>"
 proof-
   define B where d1:"B \<equiv> (A - {e\<^sub>1'(v), e\<^sub>2'(v)}) \<union> {e \<^sub>1, e \<^sub>2}"
@@ -1016,11 +1024,43 @@ real4_module_def
         by (simp add: module_real4.lincomb_def)
     qed
     thus "module_real4.lin_dep \<O>"
-      using module_real4.lin_dep_def f0 assms(4) \<open>B \<subseteq> \<O>\<close> \<open>b \<in> (B \<rightarrow> carrier real_ring)\<close> h1 assms(5)
-        
-
-       (*using assms(4) d1 d2 vec_basis1'_to_vec_basis module.lincomb_def[of "real_ring" "real4_module"] h1 
-vec_basis3'_to_vec_basis vec_basis4'_to_vec_basis real4_module_def real4_add_def real4_smult_def *)
+    proof-
+      have "module_real4.lin_dep \<O>" if h11:"u = e\<^sub>3'(v) \<or> u = e\<^sub>4'(v)"
+      proof-
+        have f15:"u = e \<^sub>3 \<or> u = e \<^sub>4"
+          using h11 vec_basis3'_to_vec_basis vec_basis4'_to_vec_basis
+          by simp
+        then have f16:"u \<in> B"
+          using h1 d1 assms(5) \<open>B \<subseteq> \<O>\<close> vec_basis_set_def assms(2) vec_basis'_def
+          by (smt Diff_insert2 Diff_insert_absorb UnCI assms(1) assms(3) assms(4) assms(6) 
+insert_Diff insert_absorb2 insert_iff lincomb_vec_basis subsetCE subsetI vec_basis3'_to_vec_basis 
+vec_basis4'_to_vec_basis)
+        moreover have "b u = a u"
+          using d2 f15 vec_basis3'_def vec_basis4'_to_vec_basis vec_basis_def vec_basis_noteq_1(2) 
+vec_basis_noteq_1(3) vec_basis_noteq_2(2) vec_basis_noteq_2(3) 
+          by auto
+        thus ?thesis
+          using module_real4.lin_dep_def f0 \<open>B \<subseteq> \<O>\<close> \<open>b \<in> (B \<rightarrow> carrier real_ring)\<close> f16
+          by (smt \<open>module_real4.lincomb a A = module_real4.lincomb b B\<close> assms(4) assms(6) lincomb_vec_basis)
+      qed
+      have "module_real4.lin_dep \<O>" if h12:"u = e\<^sub>1'(v)"
+      proof-
+        have "a (e\<^sub>1'(v)) * \<gamma> (v) \<noteq> 0"
+          using assms(8) assms(9) Lorentz_factor_not_zero h12 assms(6)
+          by simp
+        hence "b e \<^sub>1 \<noteq> 0"
+          using d2
+          by simp
+        thus ?thesis
+          using module_real4.lin_dep_def f0 \<open>B \<subseteq> \<O>\<close> \<open>b \<in> (B \<rightarrow> carrier real_ring)\<close>
+          by (smt Un_insert_right \<open>module_real4.lincomb a A = module_real4.lincomb b B\<close> assms(4) d1 
+insertCI lincomb_vec_basis)
+      qed
+      thus ?thesis
+        using assms(5) h1 assms(2) vec_basis'_def \<open>u = e\<^sub>3' v \<or> u = e\<^sub>4' v \<Longrightarrow> module_real4.lin_dep \<O>\<close> 
+        by blast
+    qed
+  qed
   have f2:"module_real4.lin_dep \<O>" if h2:"e\<^sub>1'(v) \<notin> A \<and> e\<^sub>2'(v) \<in> A" sorry
   have "module_real4.lin_dep \<O>" if h3:"e\<^sub>1'(v) \<in> A \<and> e\<^sub>2'(v) \<in> A" sorry
   thus ?thesis
@@ -1031,13 +1071,14 @@ qed
 lemma lincomb_vec_basis'_to_lin_dep_vec_basis:
   fixes v::"real"
   assumes "finite A" and "A \<subseteq> \<O>' (v)" and "a \<in> (A \<rightarrow> carrier real_ring)" and 
-"module_real4.lincomb a A = real4_zero" and "u \<in> A" and "a u \<noteq> 0"
+"module_real4.lincomb a A = real4_zero" and "u \<in> A" and "a u \<noteq> 0" and "v \<noteq> 1" and "v \<noteq> -1"
   shows "module_real4.lin_dep \<O>"
     using assms lincomb_vec_basis'_to_lin_dep_vec_basis_1 lincomb_vec_basis'_to_lin_dep_vec_basis_2 sledgehammer
     by metis
 
 lemma lin_indpt_vec_basis' :
   fixes v::"real"
+  assumes "v \<noteq> 1" and "v \<noteq> -1"
   shows "module_real4.lin_indpt \<O>' (v)"
 proof
   assume h1:"module_real4.lin_dep \<O>' (v)"
@@ -1046,7 +1087,7 @@ proof
     using module_real4.lin_dep_def real4_module_def
     by (metis partial_object.select_convs(1) real_ring_def ring_record_simps(11))
   then have "module_real4.lin_dep \<O>"
-    using a1 a2 a3 a4 a5 a6 lincomb_vec_basis'_to_lin_dep_vec_basis 
+    using assms a1 a2 a3 a4 a5 a6 lincomb_vec_basis'_to_lin_dep_vec_basis 
     by simp
   thus "False"
     using lin_indpt_vec_basis 
