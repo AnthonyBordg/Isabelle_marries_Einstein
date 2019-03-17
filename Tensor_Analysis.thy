@@ -369,12 +369,39 @@ interpretation field_real : field "real_ring"
 interpretation vecspace_real4 : vectorspace "real_ring" "real4_module"
   apply unfold_locales.
 
+lemma real4_smult_left_factor:
+  fixes x::"real^4" and k l::"real"
+  shows "k \<odot>\<^bsub>real4_module\<^esub> x + l \<odot>\<^bsub>real4_module\<^esub> x = (k + l) \<odot>\<^bsub>real4_module\<^esub> x"
+  apply (auto simp: real4_module_def real4_smult_def real4_add_def vec_eq_iff)
+  by (simp add: ring_class.ring_distribs(2))
+
 lemma real4_smult_left_distr:
   fixes x y::"real^4" and k l m::"real"
   shows "k \<odot>\<^bsub>real4_module\<^esub> (l \<odot>\<^bsub>real4_module\<^esub> x + m \<odot>\<^bsub>real4_module\<^esub> y) = 
     k * l \<odot>\<^bsub>real4_module\<^esub> x + k * m \<odot>\<^bsub>real4_module\<^esub> y"
   apply (auto simp: real4_module_def real4_smult_def real4_add_def vec_eq_iff)
   by (simp add: ring_class.ring_distribs(1))
+
+lemma real4_smult_left_distr_bis:
+  fixes x y::"real^4" and k l m k' l' m'::"real"
+  shows "k \<odot>\<^bsub>real4_module\<^esub> (l \<odot>\<^bsub>real4_module\<^esub> x + m \<odot>\<^bsub>real4_module\<^esub> y) + 
+  k' \<odot>\<^bsub>real4_module\<^esub> (l' \<odot>\<^bsub>real4_module\<^esub> x + m' \<odot>\<^bsub>real4_module\<^esub> y) = 
+((k * l) + k' * l') \<odot>\<^bsub>real4_module\<^esub> x + ((k * m) + k' * m') \<odot>\<^bsub>real4_module\<^esub> y"
+proof-
+  have "k \<odot>\<^bsub>real4_module\<^esub> (l \<odot>\<^bsub>real4_module\<^esub> x + m \<odot>\<^bsub>real4_module\<^esub> y) +
+    k' \<odot>\<^bsub>real4_module\<^esub> (l' \<odot>\<^bsub>real4_module\<^esub> x + m' \<odot>\<^bsub>real4_module\<^esub> y) = 
+ k * l \<odot>\<^bsub>real4_module\<^esub> x + k * m \<odot>\<^bsub>real4_module\<^esub> y + 
+ k' * l' \<odot>\<^bsub>real4_module\<^esub> x + k' * m' \<odot>\<^bsub>real4_module\<^esub> y"
+    using real4_smult_left_distr
+    by simp
+  then have "k \<odot>\<^bsub>real4_module\<^esub> (l \<odot>\<^bsub>real4_module\<^esub> x + m \<odot>\<^bsub>real4_module\<^esub> y) +
+    k' \<odot>\<^bsub>real4_module\<^esub> (l' \<odot>\<^bsub>real4_module\<^esub> x + m' \<odot>\<^bsub>real4_module\<^esub> y) = 
+k * l \<odot>\<^bsub>real4_module\<^esub> x + k' * l' \<odot>\<^bsub>real4_module\<^esub> x + k * m \<odot>\<^bsub>real4_module\<^esub> y + k' * m' \<odot>\<^bsub>real4_module\<^esub> y"
+    by simp
+  thus ?thesis
+    using real4_smult_left_factor[of "k * l" "x" "k' * l'"] real4_smult_left_factor[of "k * m" "y" "k' * m'"]
+    by simp
+qed
 
 text 
 \<open>
@@ -906,29 +933,45 @@ definition vec_basis' :: "real \<Rightarrow> (real^4) set" ("\<O>' (_)") where
 
 lemma vec_basis1'_to_vec_basis:
   fixes v::"real"
-  shows "vec_basis1' v = \<gamma> v \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>1) + v * \<gamma> v \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>2)"
+  shows "e\<^sub>1'(v) = \<gamma> v \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>1) + v * \<gamma> v \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>2)"
   using vec_basis1'_def vec_basis_def real4_module_def real4_smult_def
   by (smt UNIV_I module.select_convs(1) mult_cancel_left1 mult_cancel_right1 numeral_eq_one_iff 
 vec_lambda_inverse vector_add vector_comp vector_eta_bis)
 
 lemma vec_basis2'_to_vec_basis:
   fixes v::"real"
-  shows "vec_basis2' v = v * \<gamma> v \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>1) + \<gamma> v \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>2)"
+  shows "e\<^sub>2'(v) = v * \<gamma> v \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>1) + \<gamma> v \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>2)"
   using vec_basis2'_def vec_basis_def real4_module_def real4_smult_def
   by (smt UNIV_I module.select_convs(1) mult_cancel_left1 mult_cancel_right1 numeral_eq_one_iff 
 vec_lambda_inverse vector_add vector_comp vector_eta_bis)
 
 lemma vec_basis3'_to_vec_basis:
   fixes v::"real"
-  shows "vec_basis3' v = e \<^sub>3"
+  shows "e\<^sub>3'(v) = e \<^sub>3"
   using vec_basis3'_def vec_basis_def
   by simp
 
 lemma vec_basis4'_to_vec_basis:
   fixes v::"real"
-  shows "vec_basis4' v = e \<^sub>4"
+  shows "e\<^sub>4'(v) = e \<^sub>4"
   using vec_basis4'_def vec_basis_def 
   by simp
+
+lemma vec_basis1'_neq_vec_basis34:
+  fixes v::"real"
+  shows "e\<^sub>1'(v) \<noteq> e \<^sub>3" and "e\<^sub>1'(v) \<noteq> e \<^sub>4"
+  using vec_basis1'_def vec_basis_def
+  apply (metis vec_basis3'_def vec_basis3'_to_vec_basis vector_comp(3) zero_neq_one)
+  by (metis (no_types, lifting) num.inject(1) numeral_eq_iff numeral_eq_one_iff semiring_norm(85) 
+vec_basis1'_def vec_basis_def vec_basis_noteq_4(3) vector_comp(4))
+
+lemma vec_basis2'_neq_vec_basis34:
+  fixes v::"real"
+  shows "e\<^sub>2'(v) \<noteq> e \<^sub>3" and "e\<^sub>2'(v) \<noteq> e \<^sub>4"
+  using vec_basis2'_def vec_basis_def
+  apply (metis vec_basis3'_def vec_basis3'_to_vec_basis vector_comp(3) zero_neq_one)
+  by (metis (no_types, lifting) num.inject(1) numeral_eq_iff numeral_eq_one_iff semiring_norm(85) 
+vec_basis2'_def vec_basis_def vec_basis_noteq_4(3) vector_comp(4))
 
 lemma lincomb_vec_basis'_to_lin_dep_vec_basis_1:
   fixes v::"real"
@@ -1061,8 +1104,197 @@ insertCI lincomb_vec_basis)
         by blast
     qed
   qed
-  have f2:"module_real4.lin_dep \<O>" if h2:"e\<^sub>1'(v) \<notin> A \<and> e\<^sub>2'(v) \<in> A" sorry
-  have "module_real4.lin_dep \<O>" if h3:"e\<^sub>1'(v) \<in> A \<and> e\<^sub>2'(v) \<in> A" sorry
+  have f2:"module_real4.lin_dep \<O>" if h2:"e\<^sub>1'(v) \<notin> A \<and> e\<^sub>2'(v) \<in> A"
+  proof-
+    define b where d2:"b \<equiv> \<lambda>w. if w = e \<^sub>2 then a (vec_basis2' v) * \<gamma> (v) else 
+  if w = e \<^sub>1 then a (vec_basis2' v) * v * \<gamma> (v) else
+    if w = e \<^sub>3 then a e\<^sub>3'(v) else
+      if w = e \<^sub>4 then  a e\<^sub>4'(v) else undefined"
+    then have "b \<in> (B \<rightarrow> carrier real_ring)"
+      by (simp add: real_ring_def)
+    have "module_real4.lincomb a A = module_real4.lincomb b B"
+    proof-
+      have "module_real4.lincomb a A = (\<Oplus>\<^bsub>real4_module\<^esub>v\<in>A. a v \<odot>\<^bsub>real4_module\<^esub> v)"
+        using module_real4.lincomb_def 
+        by auto
+      then have "module_real4.lincomb a A = 
+        a (e\<^sub>2'(v)) \<odot>\<^bsub>real4_module\<^esub> e\<^sub>2'(v) + (\<Oplus>\<^bsub>real4_module\<^esub>v\<in>A-{e\<^sub>2'(v)}. a v \<odot>\<^bsub>real4_module\<^esub> v)"
+        using h2
+        by (metis (no_types, lifting) Diff_insert_absorb assms(1) finite_Diff finsum_insert mk_disjoint_insert)
+      then have "module_real4.lincomb a A = a (e\<^sub>2'(v)) \<odot>\<^bsub>real4_module\<^esub> (v * \<gamma> v \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>1) 
++ \<gamma> v \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>2)) + (\<Oplus>\<^bsub>real4_module\<^esub>v\<in>A-{e\<^sub>2'(v)}. a v \<odot>\<^bsub>real4_module\<^esub> v)"
+        using vec_basis2'_to_vec_basis 
+        by simp
+      then have "module_real4.lincomb a A = (a (e\<^sub>2'(v)) * v * \<gamma> v) \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>1) + 
+(a (e\<^sub>2'(v)) * \<gamma> v) \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>2) + (\<Oplus>\<^bsub>real4_module\<^esub>v\<in>A-{e\<^sub>2'(v)}. a v \<odot>\<^bsub>real4_module\<^esub> v)"
+        using real4_smult_left_distr
+        by (simp add: semiring_normalization_rules(18))
+      then have f21:"module_real4.lincomb a A = b e \<^sub>1 \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>1) + b e \<^sub>2 \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>2) 
++ (\<Oplus>\<^bsub>real4_module\<^esub>v\<in>A-{e\<^sub>2'(v)}. a v \<odot>\<^bsub>real4_module\<^esub> v)"
+        using d2 vec_basis_noteq_2(1)
+        by auto
+      have "A - {e\<^sub>2'(v)} = A - {e\<^sub>1'(v), e\<^sub>2'(v)}"
+        using h2
+        by blast
+      then have f22:"A - {e\<^sub>2'(v)} = B - {e \<^sub>1, e \<^sub>2}"
+        using d1 Diff_insert2 assms(2) vec_basis'_def vec_basis3'_to_vec_basis vec_basis4'_to_vec_basis 
+vec_basis_noteq_1(2) vec_basis_noteq_1(3) vec_basis_noteq_2(2) vec_basis_noteq_2(3) 
+        by auto
+      then have f23:"module_real4.lincomb a A = b e \<^sub>1 \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>1) + b e \<^sub>2 \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>2) 
++ (\<Oplus>\<^bsub>real4_module\<^esub>v\<in>B-{e \<^sub>1, e \<^sub>2}. a v \<odot>\<^bsub>real4_module\<^esub> v)"
+        using f21
+        by simp
+      have "\<forall>v\<in>B-{e \<^sub>1, e \<^sub>2}. a v = b v"
+        using h2 d2 vec_basis3'_to_vec_basis vec_basis4'_to_vec_basis f22 assms(2) vec_basis'_def
+        by (smt DiffD2 insertE insertI1 insertI2 insert_Diff insert_subset)
+      then have "\<forall>v\<in>B-{e \<^sub>1, e \<^sub>2}. a v \<odot>\<^bsub>real4_module\<^esub> v = b v \<odot>\<^bsub>real4_module\<^esub> v"
+        by simp
+      then have "(\<Oplus>\<^bsub>real4_module\<^esub>v\<in>B-{e \<^sub>1, e \<^sub>2}. a v \<odot>\<^bsub>real4_module\<^esub> v) = 
+(\<Oplus>\<^bsub>real4_module\<^esub>v\<in>B-{e \<^sub>1, e \<^sub>2}. b v \<odot>\<^bsub>real4_module\<^esub> v)"
+        using Tensor_Analysis.module_real4.finsum_cong'[of "B-{e \<^sub>1, e \<^sub>2}" "B-{e \<^sub>1, e \<^sub>2}" "\<lambda>v. b v \<odot>\<^bsub>real4_module\<^esub> v"] 
+real4_module_def
+        by (metis (no_types, lifting) Pi_I' UNIV_I partial_object.select_convs(1))
+      then have f24:"module_real4.lincomb a A = b e \<^sub>1 \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>1) + b e \<^sub>2 \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>2) 
++ (\<Oplus>\<^bsub>real4_module\<^esub>v\<in>B-{e \<^sub>1, e \<^sub>2}. b v \<odot>\<^bsub>real4_module\<^esub> v)"
+        using f23 
+        by simp
+      have "insert e \<^sub>1 (insert e \<^sub>2 (B-{e \<^sub>1, e \<^sub>2})) = B"
+        using d1 vec_basis_noteq_1(1)
+        by blast
+      then have "module_real4.lincomb a A = (\<Oplus>\<^bsub>real4_module\<^esub>v\<in>B. b v \<odot>\<^bsub>real4_module\<^esub> v)"
+        using finsum_insert f0 f24
+        by (smt Diff_iff finite_insert insert_commute insert_iff is_num_normalize(1) vec_basis_noteq_2(1))
+      thus "module_real4.lincomb a A = module_real4.lincomb b B"
+        by (simp add: module_real4.lincomb_def)
+    qed
+    thus "module_real4.lin_dep \<O>"
+    proof-
+      have "module_real4.lin_dep \<O>" if h21:"u = e\<^sub>3'(v) \<or> u = e\<^sub>4'(v)"
+      proof-
+        have f25:"u = e \<^sub>3 \<or> u = e \<^sub>4"
+          using h21 vec_basis3'_to_vec_basis vec_basis4'_to_vec_basis
+          by simp
+        then have f26:"u \<in> B"
+          using h2 d1 assms(5) \<open>B \<subseteq> \<O>\<close> vec_basis_set_def assms(2) vec_basis'_def
+          by (smt Diff_insert2 Diff_insert_absorb UnCI assms(1) assms(3) assms(4) assms(6) 
+insert_Diff insert_absorb2 insert_iff lincomb_vec_basis subsetCE subsetI vec_basis3'_to_vec_basis 
+vec_basis4'_to_vec_basis)
+        moreover have "b u = a u"
+          using d2 f25 vec_basis3'_def vec_basis4'_to_vec_basis vec_basis_def vec_basis_noteq_1(2) 
+vec_basis_noteq_1(3) vec_basis_noteq_2(2) vec_basis_noteq_2(3) 
+          by auto
+        thus ?thesis
+          using module_real4.lin_dep_def f0 \<open>B \<subseteq> \<O>\<close> \<open>b \<in> (B \<rightarrow> carrier real_ring)\<close> f26
+          by (smt \<open>module_real4.lincomb a A = module_real4.lincomb b B\<close> assms(4) assms(6) lincomb_vec_basis)
+      qed
+      have "module_real4.lin_dep \<O>" if h22:"u = e\<^sub>2'(v)"
+      proof-
+        have "a (e\<^sub>2'(v)) * \<gamma> (v) \<noteq> 0"
+          using assms(8) assms(9) Lorentz_factor_not_zero h22 assms(6)
+          by simp
+        hence "b e \<^sub>2 \<noteq> 0"
+          using d2
+          by simp
+        thus ?thesis
+          using module_real4.lin_dep_def f0 \<open>B \<subseteq> \<O>\<close> \<open>b \<in> (B \<rightarrow> carrier real_ring)\<close>
+          by (smt Un_insert_right \<open>module_real4.lincomb a A = module_real4.lincomb b B\<close> assms(4) d1 
+insertCI lincomb_vec_basis)
+      qed
+      thus ?thesis
+        using assms(5) h2 assms(2) vec_basis'_def \<open>u = e\<^sub>3' v \<or> u = e\<^sub>4' v \<Longrightarrow> module_real4.lin_dep \<O>\<close>
+        by auto 
+    qed
+  qed
+  have "module_real4.lin_dep \<O>" if h3:"e\<^sub>1'(v) \<in> A \<and> e\<^sub>2'(v) \<in> A"
+  proof-
+    define b where d2:"b \<equiv> \<lambda>w. if w = e \<^sub>1 then (a (vec_basis1' v) * \<gamma> (v)) + a (e\<^sub>2'(v)) * v * \<gamma> (v) else 
+  if w = e \<^sub>2 then (a (vec_basis1' v) * v * \<gamma> (v)) + (a e\<^sub>2'(v)) * \<gamma> (v) else
+    if w = e \<^sub>3 then a e\<^sub>3'(v) else
+      if w = e \<^sub>4 then  a e\<^sub>4'(v) else undefined"
+    then have "b \<in> (B \<rightarrow> carrier real_ring)"
+      by (simp add: real_ring_def)
+    have "module_real4.lincomb a A = module_real4.lincomb b B"
+    proof-
+      have "module_real4.lincomb a A = (\<Oplus>\<^bsub>real4_module\<^esub>v\<in>A. a v \<odot>\<^bsub>real4_module\<^esub> v)"
+        using module_real4.lincomb_def 
+        by auto
+      then have "module_real4.lincomb a A = 
+        a (e\<^sub>1'(v)) \<odot>\<^bsub>real4_module\<^esub> e\<^sub>1'(v) + a (e\<^sub>2'(v)) \<odot>\<^bsub>real4_module\<^esub> e\<^sub>2'(v) + (\<Oplus>\<^bsub>real4_module\<^esub>v\<in>A-{e\<^sub>1'(v), e\<^sub>2'(v)}. a v \<odot>\<^bsub>real4_module\<^esub> v)"
+        using h3
+        by (smt Diff_insert Diff_subset Lorentz_factor_not_zero assms(1) assms(8) assms(9) finite_Diff 
+finsum_insert insert_Diff insert_Diff_if is_num_normalize(1) mult_cancel_right1 singletonD 
+subset_Diff_insert vec_basis1'_def vec_basis2'_def vector_comp(1))
+      then have "module_real4.lincomb a A = a (e\<^sub>1'(v)) \<odot>\<^bsub>real4_module\<^esub> (\<gamma> v \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>1) 
++ v * \<gamma> v \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>2)) + a (e\<^sub>2'(v)) \<odot>\<^bsub>real4_module\<^esub> (v * \<gamma> v \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>1) 
++ \<gamma> v \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>2)) + (\<Oplus>\<^bsub>real4_module\<^esub>v\<in>A-{e\<^sub>1'(v), e\<^sub>2'(v)}. a v \<odot>\<^bsub>real4_module\<^esub> v)"
+        using vec_basis1'_to_vec_basis vec_basis2'_to_vec_basis 
+        by simp
+      then have "module_real4.lincomb a A = ((a (e\<^sub>1'(v)) * \<gamma> v) + a (e\<^sub>2'(v)) * v * \<gamma> v) \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>1) + 
+((a (e\<^sub>1'(v)) * v * \<gamma> v) + a (e\<^sub>2'(v)) * \<gamma> v) \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>2) + (\<Oplus>\<^bsub>real4_module\<^esub>v\<in>A-{e\<^sub>1'(v), e\<^sub>2'(v)}. a v \<odot>\<^bsub>real4_module\<^esub> v)"
+        using real4_smult_left_distr_bis
+        by (simp add: semiring_normalization_rules(18))
+      then have f31:"module_real4.lincomb a A = b e \<^sub>1 \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>1) + b e \<^sub>2 \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>2) 
++ (\<Oplus>\<^bsub>real4_module\<^esub>v\<in>A-{e\<^sub>1'(v), e\<^sub>2'(v)}. a v \<odot>\<^bsub>real4_module\<^esub> v)"
+        using d2 vec_basis_noteq_2(1)
+        by auto
+      have f32:"A - {e\<^sub>1'(v), e\<^sub>2'(v)} = B - {e \<^sub>1, e \<^sub>2}"
+        using d1 Diff_insert2 assms(2) vec_basis'_def vec_basis3'_to_vec_basis vec_basis4'_to_vec_basis 
+vec_basis_noteq_1(2) vec_basis_noteq_1(3) vec_basis_noteq_2(2) vec_basis_noteq_2(3) 
+        by auto
+      then have f33:"module_real4.lincomb a A = b e \<^sub>1 \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>1) + b e \<^sub>2 \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>2) 
++ (\<Oplus>\<^bsub>real4_module\<^esub>v\<in>B-{e \<^sub>1, e \<^sub>2}. a v \<odot>\<^bsub>real4_module\<^esub> v)"
+        using f31
+        by simp
+      have "\<forall>v\<in>B-{e \<^sub>1, e \<^sub>2}. a v = b v"
+        using h3 d2 vec_basis3'_to_vec_basis vec_basis4'_to_vec_basis f32 assms(2) vec_basis'_def
+        by (smt DiffD1 DiffD2 insertE insertI1 insert_commute subsetCE)
+      then have "\<forall>v\<in>B-{e \<^sub>1, e \<^sub>2}. a v \<odot>\<^bsub>real4_module\<^esub> v = b v \<odot>\<^bsub>real4_module\<^esub> v"
+        by simp
+      then have "(\<Oplus>\<^bsub>real4_module\<^esub>v\<in>B-{e \<^sub>1, e \<^sub>2}. a v \<odot>\<^bsub>real4_module\<^esub> v) = 
+(\<Oplus>\<^bsub>real4_module\<^esub>v\<in>B-{e \<^sub>1, e \<^sub>2}. b v \<odot>\<^bsub>real4_module\<^esub> v)"
+        using Tensor_Analysis.module_real4.finsum_cong'[of "B-{e \<^sub>1, e \<^sub>2}" "B-{e \<^sub>1, e \<^sub>2}" "\<lambda>v. b v \<odot>\<^bsub>real4_module\<^esub> v"] 
+real4_module_def
+        by (metis (no_types, lifting) Pi_I' UNIV_I partial_object.select_convs(1))
+      then have f34:"module_real4.lincomb a A = b e \<^sub>1 \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>1) + b e \<^sub>2 \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>2) 
++ (\<Oplus>\<^bsub>real4_module\<^esub>v\<in>B-{e \<^sub>1, e \<^sub>2}. b v \<odot>\<^bsub>real4_module\<^esub> v)"
+        using f33 
+        by simp
+      have "insert e \<^sub>1 (insert e \<^sub>2 (B-{e \<^sub>1, e \<^sub>2})) = B"
+        using d1 vec_basis_noteq_1(1)
+        by blast
+      then have "module_real4.lincomb a A = (\<Oplus>\<^bsub>real4_module\<^esub>v\<in>B. b v \<odot>\<^bsub>real4_module\<^esub> v)"
+        using finsum_insert f0 f34
+        by (smt Diff_iff finite_insert insert_commute insert_iff is_num_normalize(1) vec_basis_noteq_2(1))
+      thus "module_real4.lincomb a A = module_real4.lincomb b B"
+        by (simp add: module_real4.lincomb_def)
+    qed
+    thus "module_real4.lin_dep \<O>"
+    proof-
+      have "module_real4.lin_dep \<O>" if h31:"u = e\<^sub>3'(v) \<or> u = e\<^sub>4'(v)"
+      proof-
+        have f35:"u = e \<^sub>3 \<or> u = e \<^sub>4"
+          using h31 vec_basis3'_to_vec_basis vec_basis4'_to_vec_basis
+          by simp
+        then have f36:"u \<in> B"
+          using h3 d1 assms(5) \<open>B \<subseteq> \<O>\<close> vec_basis_set_def assms(2) vec_basis'_def vec_basis1'_neq_vec_basis34
+vec_basis2'_neq_vec_basis34
+          by fastforce
+        moreover have "b u = a u"
+          using d2 f35 vec_basis3'_def vec_basis4'_to_vec_basis vec_basis_def vec_basis_noteq_1(2) 
+vec_basis_noteq_1(3) vec_basis_noteq_2(2) vec_basis_noteq_2(3) 
+          by auto
+        thus ?thesis
+          using module_real4.lin_dep_def f0 \<open>B \<subseteq> \<O>\<close> \<open>b \<in> (B \<rightarrow> carrier real_ring)\<close> f36
+          by (smt \<open>module_real4.lincomb a A = module_real4.lincomb b B\<close> assms(4) assms(6) lincomb_vec_basis)
+      qed
+      have "module_real4.lin_dep \<O>" if h32:"u = e\<^sub>2'(v)" sorry
+      have "module_real4.lin_dep \<O>" if h33:"u = e\<^sub>1'(v)" sorry
+      thus ?thesis
+        using assms(5) h3 assms(2) vec_basis'_def \<open>u = e\<^sub>3' v \<or> u = e\<^sub>4' v \<Longrightarrow> module_real4.lin_dep \<O>\<close>
+\<open>u = e\<^sub>2' v \<Longrightarrow> module_real4.lin_dep \<O>\<close>
+        by auto 
+    qed
+  qed
   thus ?thesis
     using f1 f2 assms(7)
     by blast
