@@ -1287,11 +1287,8 @@ vec_basis_noteq_1(3) vec_basis_noteq_2(2) vec_basis_noteq_2(3)
           using module_real4.lin_dep_def f0 \<open>B \<subseteq> \<O>\<close> \<open>b \<in> (B \<rightarrow> carrier real_ring)\<close> f36
           by (smt \<open>module_real4.lincomb a A = module_real4.lincomb b B\<close> assms(4) assms(6) lincomb_vec_basis)
       qed
-      have "module_real4.lin_dep \<O>" if h32:"u = e\<^sub>2'(v)"
+      have "module_real4.lin_dep \<O>" if h32:"u = e\<^sub>2'(v) \<or> u = e\<^sub>1'(v)"
       proof-
-        have f37:"a (e\<^sub>2'(v)) * v * \<gamma> v \<noteq> 0"
-          using that assms(6) assms(10)
-          by (simp add: Lorentz_factor_not_zero assms(8) assms(9))
         have f38:"b e \<^sub>1 \<noteq> 0" if "a (e\<^sub>1'(v)) * \<gamma> v \<noteq> - a (e\<^sub>2'(v)) * v * \<gamma> v"
           using that d2
           by simp
@@ -1314,8 +1311,8 @@ f38 \<open>module_real4.lincomb a A = module_real4.lincomb b B\<close> assms(4)
             by (simp add: vector_space_over_itself.scale_right_diff_distrib)
           then have "b e \<^sub>2 \<noteq> 0"
             using assms(6) h32 assms(8) assms(9) assms(10) Lorentz_factor_not_zero mult_eq_0_iff
-power2_eq_1_iff 
-            by (metis add_cancel_right_left diff_add_cancel)
+            by (metis add.inverse_neutral divide_eq_0_iff lorentz_factor_def minus_mult_commute 
+mult_minus_right mult_zero_left real_sqrt_eq_zero_cancel_iff that) 
           thus ?thesis
             using that module_real4.lin_dep_def[of "\<O>"] f0 d1 \<open>B \<subseteq> \<O>\<close> \<open>b \<in> (B \<rightarrow> carrier real_ring)\<close> 
 \<open>module_real4.lincomb a A = module_real4.lincomb b B\<close> assms(4)
@@ -1325,10 +1322,9 @@ power2_eq_1_iff
           using \<open>a (e\<^sub>1'(v)) * \<gamma> v \<noteq> - a (e\<^sub>2'(v)) * v * \<gamma> v \<Longrightarrow> module_real4.lin_dep \<O>\<close> 
           by auto
       qed
-      have "module_real4.lin_dep \<O>" if h33:"u = e\<^sub>1'(v)" sorry
       thus ?thesis
         using assms(5) h3 assms(2) vec_basis'_def \<open>u = e\<^sub>3' v \<or> u = e\<^sub>4' v \<Longrightarrow> module_real4.lin_dep \<O>\<close>
-\<open>u = e\<^sub>2' v \<Longrightarrow> module_real4.lin_dep \<O>\<close>
+\<open>u = e\<^sub>2'(v) \<or> u = e\<^sub>1'(v) \<Longrightarrow> module_real4.lin_dep \<O>\<close>
         by auto 
     qed
   qed
