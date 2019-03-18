@@ -993,7 +993,7 @@ lemma lincomb_vec_basis'_to_lin_dep_vec_basis_2:
   fixes v::"real"
   assumes "finite A" and "A \<subseteq> \<O>' (v)" and "a \<in> (A \<rightarrow> carrier real_ring)" and 
 "module_real4.lincomb a A = real4_zero" and "u \<in> A" and "a u \<noteq> 0" and "e\<^sub>1'(v) \<in> A \<or> e\<^sub>2'(v) \<in> A"
-and "v \<noteq> 1" and "v \<noteq> -1"
+and "v \<noteq> 1" and "v \<noteq> -1" and "v \<noteq> 0"
   shows "module_real4.lin_dep \<O>"
 proof-
   define B where d1:"B \<equiv> (A - {e\<^sub>1'(v), e\<^sub>2'(v)}) \<union> {e \<^sub>1, e \<^sub>2}"
@@ -1208,7 +1208,7 @@ insertCI lincomb_vec_basis)
   have "module_real4.lin_dep \<O>" if h3:"e\<^sub>1'(v) \<in> A \<and> e\<^sub>2'(v) \<in> A"
   proof-
     define b where d2:"b \<equiv> \<lambda>w. if w = e \<^sub>1 then (a (vec_basis1' v) * \<gamma> (v)) + a (e\<^sub>2'(v)) * v * \<gamma> (v) else 
-  if w = e \<^sub>2 then (a (vec_basis1' v) * v * \<gamma> (v)) + (a e\<^sub>2'(v)) * \<gamma> (v) else
+  if w = e \<^sub>2 then (a (e\<^sub>1' v) * v * \<gamma> v) + (a e\<^sub>2'(v)) * \<gamma> (v) else
     if w = e \<^sub>3 then a e\<^sub>3'(v) else
       if w = e \<^sub>4 then  a e\<^sub>4'(v) else undefined"
     then have "b \<in> (B \<rightarrow> carrier real_ring)"
@@ -1287,7 +1287,44 @@ vec_basis_noteq_1(3) vec_basis_noteq_2(2) vec_basis_noteq_2(3)
           using module_real4.lin_dep_def f0 \<open>B \<subseteq> \<O>\<close> \<open>b \<in> (B \<rightarrow> carrier real_ring)\<close> f36
           by (smt \<open>module_real4.lincomb a A = module_real4.lincomb b B\<close> assms(4) assms(6) lincomb_vec_basis)
       qed
-      have "module_real4.lin_dep \<O>" if h32:"u = e\<^sub>2'(v)" sorry
+      have "module_real4.lin_dep \<O>" if h32:"u = e\<^sub>2'(v)"
+      proof-
+        have f37:"a (e\<^sub>2'(v)) * v * \<gamma> v \<noteq> 0"
+          using that assms(6) assms(10)
+          by (simp add: Lorentz_factor_not_zero assms(8) assms(9))
+        have f38:"b e \<^sub>1 \<noteq> 0" if "a (e\<^sub>1'(v)) * \<gamma> v \<noteq> - a (e\<^sub>2'(v)) * v * \<gamma> v"
+          using that d2
+          by simp
+        then have "module_real4.lin_dep \<O>" if "a (e\<^sub>1'(v)) * \<gamma> v \<noteq> - a (e\<^sub>2'(v)) * v * \<gamma> v"
+          using that module_real4.lin_dep_def[of "\<O>"] f0 d1 \<open>B \<subseteq> \<O>\<close> \<open>b \<in> (B \<rightarrow> carrier real_ring)\<close> 
+f38 \<open>module_real4.lincomb a A = module_real4.lincomb b B\<close> assms(4)
+          by (smt Un_insert_right insertCI lincomb_vec_basis)
+        have "module_real4.lin_dep \<O>" if "a (e\<^sub>1'(v)) * \<gamma> v = - a (e\<^sub>2'(v)) * v * \<gamma> v"
+        proof-
+          have "(a (e\<^sub>1' v) * v * \<gamma> v)= - a (e\<^sub>2' v) * v\<^sup>2 * \<gamma> v"
+            using that
+            by (metis mult.commute power2_eq_square semiring_normalization_rules(18))
+          then have "b e \<^sub>2 = (- a (e\<^sub>2' v) * v\<^sup>2 * \<gamma> v) + (a e\<^sub>2'(v)) * \<gamma> (v)"
+            using d2 vec_basis_noteq_1(1) 
+            by metis
+          then have "b e \<^sub>2 = (a (e\<^sub>2' v) * \<gamma> v) * (-v\<^sup>2) + (a e\<^sub>2'(v)) * \<gamma> (v)"
+            using mult_minus_right 
+            by (metis mult.commute mult.left_commute)
+          then have "b e \<^sub>2 = a (e\<^sub>2'(v)) * (\<gamma> v) * (1 - v\<^sup>2)"
+            by (simp add: vector_space_over_itself.scale_right_diff_distrib)
+          then have "b e \<^sub>2 \<noteq> 0"
+            using assms(6) h32 assms(8) assms(9) assms(10) Lorentz_factor_not_zero mult_eq_0_iff
+power2_eq_1_iff 
+            by (metis add_cancel_right_left diff_add_cancel)
+          thus ?thesis
+            using that module_real4.lin_dep_def[of "\<O>"] f0 d1 \<open>B \<subseteq> \<O>\<close> \<open>b \<in> (B \<rightarrow> carrier real_ring)\<close> 
+\<open>module_real4.lincomb a A = module_real4.lincomb b B\<close> assms(4)
+            by (smt Un_commute Un_insert_left insertI1 lincomb_vec_basis)
+        qed
+        thus ?thesis
+          using \<open>a (e\<^sub>1'(v)) * \<gamma> v \<noteq> - a (e\<^sub>2'(v)) * v * \<gamma> v \<Longrightarrow> module_real4.lin_dep \<O>\<close> 
+          by auto
+      qed
       have "module_real4.lin_dep \<O>" if h33:"u = e\<^sub>1'(v)" sorry
       thus ?thesis
         using assms(5) h3 assms(2) vec_basis'_def \<open>u = e\<^sub>3' v \<or> u = e\<^sub>4' v \<Longrightarrow> module_real4.lin_dep \<O>\<close>
@@ -1303,14 +1340,14 @@ qed
 lemma lincomb_vec_basis'_to_lin_dep_vec_basis:
   fixes v::"real"
   assumes "finite A" and "A \<subseteq> \<O>' (v)" and "a \<in> (A \<rightarrow> carrier real_ring)" and 
-"module_real4.lincomb a A = real4_zero" and "u \<in> A" and "a u \<noteq> 0" and "v \<noteq> 1" and "v \<noteq> -1"
+"module_real4.lincomb a A = real4_zero" and "u \<in> A" and "a u \<noteq> 0" and "v \<noteq> 1" and "v \<noteq> -1" and "v \<noteq> 0"
   shows "module_real4.lin_dep \<O>"
-    using assms lincomb_vec_basis'_to_lin_dep_vec_basis_1 lincomb_vec_basis'_to_lin_dep_vec_basis_2 sledgehammer
+    using assms lincomb_vec_basis'_to_lin_dep_vec_basis_1 lincomb_vec_basis'_to_lin_dep_vec_basis_2
     by metis
 
 lemma lin_indpt_vec_basis' :
   fixes v::"real"
-  assumes "v \<noteq> 1" and "v \<noteq> -1"
+  assumes "v \<noteq> 1" and "v \<noteq> -1" and "v \<noteq> 0"
   shows "module_real4.lin_indpt \<O>' (v)"
 proof
   assume h1:"module_real4.lin_dep \<O>' (v)"
