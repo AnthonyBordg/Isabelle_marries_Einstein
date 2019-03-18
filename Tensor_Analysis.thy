@@ -883,7 +883,7 @@ qed
     
 lemma vec_basis_in_univ :
   shows "\<O> \<subseteq> carrier real4_module"
-  using real4_module_def vec_basis_def
+  using vec_basis_def
   by (simp add: real4_module_def)
 
 lemma basis_vec_basis :
@@ -1359,9 +1359,37 @@ proof
     by blast
 qed
 
+lemma vec_basis'_in_univ :
+  fixes v::"real"
+  shows "\<O>' v \<subseteq> carrier real4_module"
+  using vec_basis'_def
+  by (simp add: real4_module_def)
+
+lemma vec_basis1_to_vec_basis':
+  fixes v::"real"
+  shows "e \<^sub>1 = sqrt(1 - v/ 1 + v) \<odot>\<^bsub>real4_module\<^esub> (e\<^sub>1'(v) - v \<odot>\<^bsub>real4_module\<^esub> e\<^sub>2'(v))" sorry
+
+lemma vec_basis2_to_vec_basis':
+  fixes v::"real"
+  shows "e \<^sub>2 = \<gamma> v \<odot>\<^bsub>real4_module\<^esub> (v \<odot>\<^bsub>real4_module\<^esub> e\<^sub>1'(v) - e\<^sub>2'(v))" sorry
+
+lemma span_vec_basis_subset_span_vec_basis':
+  fixes v::"real"
+  shows "module_real4.span \<O> \<subseteq> module_real4.span \<O>'(v)" sorry
+
+lemma gen_set_vec_basis':
+  fixes v::"real"
+  shows "module_real4.gen_set \<O>' v"
+  apply (auto simp: module_real4.span_def real4_module_def)
+  using gen_set_vec_basis span_vec_basis_subset_span_vec_basis'
+  by (simp add: real4_module_def subset_eq)
+
 lemma basis_vec_basis' :
   fixes v :: real
-  shows "vecspace_real4.basis \<O>'(v)" sorry
+  assumes "v \<noteq> 0" and "v \<noteq> 1" and "v \<noteq> -1"
+  shows "vecspace_real4.basis \<O>'(v)"
+  using assms gen_set_vec_basis' vec_basis'_in_univ lin_indpt_vec_basis'
+  by (simp add: vecspace_real4.basis_def)
 
 text 
 \<open>
