@@ -835,6 +835,39 @@ lemma vector_add:
   apply (auto simp: vec_eq_iff)
   by (simp add: vector_comp(1) vec_lambda_inverse vector_def)
 
+lemma vector_smult:
+  fixes k a b c d::"real"
+  shows "k \<odot>\<^bsub>real4_module\<^esub> vector [a, b, c, d] = vector [k * a, k * b, k * c, k * d]"
+  apply (auto simp: vec_eq_iff real4_module_def real4_smult_def)
+  by (metis (full_types) exhaust_4 vector_comp(1) vector_comp(2) vector_comp(3) vector_comp(4))
+
+lemma vector_add_smult:
+  fixes k l a b c d a' b' c' d'::"real"
+  shows "k \<odot>\<^bsub>real4_module\<^esub> vector [a, b, c, d] + l \<odot>\<^bsub>real4_module\<^esub> vector [a', b', c', d'] =
+vector [k * a + l * a', k * b + l * b', k * c + l * c', k * d + l * d']"
+  using vector_smult
+  by (simp add: vector_add)
+
+lemma vector_minus_smult:
+  fixes k l a b c d a' b' c' d'::"real"
+  shows "k \<odot>\<^bsub>real4_module\<^esub> vector [a, b, c, d] - l \<odot>\<^bsub>real4_module\<^esub> vector [a', b', c', d'] =
+k \<odot>\<^bsub>real4_module\<^esub> vector [a, b, c, d] + - l \<odot>\<^bsub>real4_module\<^esub> vector [a', b', c', d']"
+  by (simp add: real4_minus)
+
+lemma vector_smult_minus:
+  fixes k l a b c d a' b' c' d'::"real"
+  shows "k \<odot>\<^bsub>real4_module\<^esub> vector [a, b, c, d] - l \<odot>\<^bsub>real4_module\<^esub> vector [a', b', c', d'] =
+vector [k * a - l * a', k * b - l * b', k * c - l * c', k * d - l * d']"
+  using vector_add_smult vector_minus_smult 
+  by simp
+
+lemma vector_smult_smult_minus:
+  fixes k l m a b c d a' b' c' d'::"real"
+  shows "k \<odot>\<^bsub>real4_module\<^esub> (l \<odot>\<^bsub>real4_module\<^esub> vector [a, b, c, d] - m \<odot>\<^bsub>real4_module\<^esub> vector [a', b', c', d']) =
+vector [k * l * a - k * m * a', k * l * b - k * m * b', k * l * c - k * m * c', k * l * d - k * m * d']"
+  using vector_smult_minus vector_smult
+  by (simp add: right_diff_distrib' vector_space_over_itself.scale_scale)
+
 lemma vec_to_comp_basis:
   fixes x::"real^4"
   assumes "a \<in> (\<O> \<rightarrow> carrier real_ring)" and "a (e \<^sub>1) = x $ 1" and "a (e \<^sub>2) = x $ 2" and "a (e \<^sub>3) = x $ 3" 
@@ -965,12 +998,19 @@ Then, one applies the Lorentz transformation to get a second basis.
 definition lorentz_factor :: "real \<Rightarrow> real" ("\<gamma> _") where
 "lorentz_factor v \<equiv> 1/sqrt(1 - v\<^sup>2)"
 
-lemma Lorentz_factor_not_zero:
+lemma lorentz_factor_not_zero:
   fixes v::"real" 
   assumes "v \<noteq> 1" and "v \<noteq> -1"
   shows "\<gamma> (v) \<noteq> 0"
   using lorentz_factor_def assms
   by (simp add: power2_eq_1_iff)
+
+lemma lorentz_factor_square:
+  fixes v::"real"
+  assumes "v \<ge> 0" and "v < 1" 
+  shows "(\<gamma> v)\<^sup>2 = 1/(1 - v\<^sup>2)"
+  using assms lorentz_factor_def real_sqrt_pow2
+  by (smt le_divide_eq_1_pos real_le_lsqrt real_sqrt_divide real_sqrt_one zero_le_power)
 
 text \<open>The transform for components of vectors.\<close>
 
@@ -1046,7 +1086,7 @@ proof
   then have "v * \<gamma> v = \<gamma> v"
     by (metis vec_basis1'_def vec_basis2'_def vector_comp(2))
   then have "v = 1"
-    using assms Lorentz_factor_not_zero 
+    using assms lorentz_factor_not_zero 
     by simp
   thus False
     using assms(1) 
@@ -1169,7 +1209,7 @@ vec_basis_noteq_1(3) vec_basis_noteq_2(2) vec_basis_noteq_2(3)
       have "module_real4.lin_dep \<O>" if h12:"u = e\<^sub>1'(v)"
       proof-
         have "a (e\<^sub>1'(v)) * \<gamma> (v) \<noteq> 0"
-          using assms(8) assms(9) Lorentz_factor_not_zero h12 assms(6)
+          using assms(8) assms(9) lorentz_factor_not_zero h12 assms(6)
           by simp
         hence "b e \<^sub>1 \<noteq> 0"
           using d2
@@ -1270,7 +1310,7 @@ vec_basis_noteq_1(3) vec_basis_noteq_2(2) vec_basis_noteq_2(3)
       have "module_real4.lin_dep \<O>" if h22:"u = e\<^sub>2'(v)"
       proof-
         have "a (e\<^sub>2'(v)) * \<gamma> (v) \<noteq> 0"
-          using assms(8) assms(9) Lorentz_factor_not_zero h22 assms(6)
+          using assms(8) assms(9) lorentz_factor_not_zero h22 assms(6)
           by simp
         hence "b e \<^sub>2 \<noteq> 0"
           using d2
@@ -1301,7 +1341,7 @@ insertCI lincomb_vec_basis)
       then have "module_real4.lincomb a A = 
         a (e\<^sub>1'(v)) \<odot>\<^bsub>real4_module\<^esub> e\<^sub>1'(v) + a (e\<^sub>2'(v)) \<odot>\<^bsub>real4_module\<^esub> e\<^sub>2'(v) + (\<Oplus>\<^bsub>real4_module\<^esub>v\<in>A-{e\<^sub>1'(v), e\<^sub>2'(v)}. a v \<odot>\<^bsub>real4_module\<^esub> v)"
         using h3
-        by (smt Diff_insert Diff_subset Lorentz_factor_not_zero assms(1) assms(8) assms(9) finite_Diff 
+        by (smt Diff_insert Diff_subset lorentz_factor_not_zero assms(1) assms(8) assms(9) finite_Diff 
 finsum_insert insert_Diff insert_Diff_if is_num_normalize(1) mult_cancel_right1 singletonD 
 subset_Diff_insert vec_basis1'_def vec_basis2'_def vector_comp(1))
       then have "module_real4.lincomb a A = a (e\<^sub>1'(v)) \<odot>\<^bsub>real4_module\<^esub> (\<gamma> v \<odot>\<^bsub>real4_module\<^esub> (e \<^sub>1) 
@@ -1390,7 +1430,7 @@ f38 \<open>module_real4.lincomb a A = module_real4.lincomb b B\<close> assms(4)
           then have "b e \<^sub>2 = a (e\<^sub>2'(v)) * (\<gamma> v) * (1 - v\<^sup>2)"
             by (simp add: vector_space_over_itself.scale_right_diff_distrib)
           then have "b e \<^sub>2 \<noteq> 0"
-            using assms(6) h32 assms(8) assms(9) assms(10) Lorentz_factor_not_zero mult_eq_0_iff
+            using assms(6) h32 assms(8) assms(9) assms(10) lorentz_factor_not_zero mult_eq_0_iff
             by (metis add.inverse_neutral divide_eq_0_iff lorentz_factor_def minus_mult_commute 
 mult_minus_right mult_zero_left real_sqrt_eq_zero_cancel_iff that) 
           thus ?thesis
@@ -1447,12 +1487,78 @@ lemma vec_basis'_in_univ :
 
 lemma vec_basis1_to_vec_basis':
   fixes v::"real"
-  shows "e \<^sub>1 = sqrt(1 - v/ 1 + v) \<odot>\<^bsub>real4_module\<^esub> (e\<^sub>1'(v) - v \<odot>\<^bsub>real4_module\<^esub> e\<^sub>2'(v))" sorry
-  (*apply (auto simp: vec_eq_iff)*)
+  assumes "v \<ge> 0" and "v < 1"
+  shows "e \<^sub>1 = (\<gamma> v) \<odot>\<^bsub>real4_module\<^esub> (e\<^sub>1'(v) - v \<odot>\<^bsub>real4_module\<^esub> e\<^sub>2'(v))"
+  apply (auto simp: vec_basis_def vec_basis1'_def vec_basis2'_def)
+proof-
+  have "(\<gamma> v) \<odot>\<^bsub>real4_module\<^esub> (1 \<odot>\<^bsub>real4_module\<^esub> vector [\<gamma> v, v * \<gamma> v, 0, 0] - v \<odot>\<^bsub>real4_module\<^esub> vector [v * \<gamma> v, \<gamma> v, 0, 0])
+= vector [(\<gamma> v) * (\<gamma> v) - (\<gamma> v) * v * (v * (\<gamma> v)), (\<gamma> v) * v * (\<gamma> v) - (\<gamma> v) * v * (\<gamma> v), 0, 0]"
+    apply (auto simp: vector_smult_smult_minus[of "\<gamma> v" "1" "\<gamma> v" "v * \<gamma> v" "0" "0" "v" "v * \<gamma> v" "\<gamma> v" "0" "0"]).
+  then have "(\<gamma> v) \<odot>\<^bsub>real4_module\<^esub> (vector [\<gamma> v, v * \<gamma> v, 0, 0] - v \<odot>\<^bsub>real4_module\<^esub> vector [v * \<gamma> v, \<gamma> v, 0, 0])
+= vector [(\<gamma> v) * (\<gamma> v) - (\<gamma> v) * v * (v * (\<gamma> v)), (\<gamma> v) * v * (\<gamma> v) - (\<gamma> v) * v * (\<gamma> v), 0, 0]"
+    using real4_smult_one 
+    by simp
+  then have "(\<gamma> v) \<odot>\<^bsub>real4_module\<^esub> (vector [\<gamma> v, v * \<gamma> v, 0, 0] - v \<odot>\<^bsub>real4_module\<^esub> vector [v * \<gamma> v, \<gamma> v, 0, 0])
+= vector [(\<gamma> v) * (\<gamma> v) - (\<gamma> v) * v * (v * (\<gamma> v)), 0, 0, 0]"
+    by simp
+  then have "(\<gamma> v) \<odot>\<^bsub>real4_module\<^esub> (vector [\<gamma> v, v * \<gamma> v, 0, 0] - v \<odot>\<^bsub>real4_module\<^esub> vector [v * \<gamma> v, \<gamma> v, 0, 0])
+= vector [(\<gamma> v) * ((\<gamma> v) - v * (v * (\<gamma> v))), 0, 0, 0]"
+    apply (auto simp: right_diff_distrib)
+    by (simp add: semiring_normalization_rules(18))
+  then have "(\<gamma> v) \<odot>\<^bsub>real4_module\<^esub> (vector [\<gamma> v, v * \<gamma> v, 0, 0] - v \<odot>\<^bsub>real4_module\<^esub> vector [v * \<gamma> v, \<gamma> v, 0, 0])
+= vector [(\<gamma> v) * ((\<gamma> v) * (1 - v * v)), 0, 0, 0]"
+    apply (auto simp: right_diff_distrib)
+    by (simp add: mult.commute semiring_normalization_rules(19))
+  then have "(\<gamma> v) \<odot>\<^bsub>real4_module\<^esub> (vector [\<gamma> v, v * \<gamma> v, 0, 0] - v \<odot>\<^bsub>real4_module\<^esub> vector [v * \<gamma> v, \<gamma> v, 0, 0])
+= vector [(\<gamma> v)\<^sup>2 * (1 - v\<^sup>2), 0, 0, 0]"
+    apply (auto simp: power2_eq_square)
+    by (simp add: semiring_normalization_rules(18))
+  then have "(\<gamma> v) \<odot>\<^bsub>real4_module\<^esub> (vector [\<gamma> v, v * \<gamma> v, 0, 0] - v \<odot>\<^bsub>real4_module\<^esub> vector [v * \<gamma> v, \<gamma> v, 0, 0])
+= vector [1/(1 - v\<^sup>2) * (1 - v\<^sup>2), 0, 0, 0]"
+    using assms lorentz_factor_square 
+    by simp 
+  thus "vector [1, 0, 0, 0] =
+    (\<gamma> v) \<odot>\<^bsub>real4_module\<^esub> (vector [\<gamma> v, v * \<gamma> v, 0, 0] - v \<odot>\<^bsub>real4_module\<^esub> vector [v * \<gamma> v, \<gamma> v, 0, 0])"
+    by (smt assms(1) assms(2) nonzero_eq_divide_eq power2_eq_1_iff)
+qed
+    
 
 lemma vec_basis2_to_vec_basis':
   fixes v::"real"
-  shows "e \<^sub>2 = \<gamma> v \<odot>\<^bsub>real4_module\<^esub> (v \<odot>\<^bsub>real4_module\<^esub> e\<^sub>1'(v) - e\<^sub>2'(v))" sorry
+  assumes "v \<ge> 0" and "v < 1"
+  shows "e \<^sub>2 = (-\<gamma> v) \<odot>\<^bsub>real4_module\<^esub> (v \<odot>\<^bsub>real4_module\<^esub> e\<^sub>1'(v) - e\<^sub>2'(v))"
+  apply (auto simp: vec_basis_def vec_basis1'_def vec_basis2'_def)
+proof-
+  have "(-\<gamma> v) \<odot>\<^bsub>real4_module\<^esub> (v \<odot>\<^bsub>real4_module\<^esub> vector [\<gamma> v, v * \<gamma> v, 0, 0] - 1 \<odot>\<^bsub>real4_module\<^esub> vector [v * \<gamma> v, \<gamma> v, 0, 0])
+= vector [(-\<gamma> v) * v * (\<gamma> v) - (-\<gamma> v) * v * (\<gamma> v), (-\<gamma> v) * v * (v * (\<gamma> v)) - (-\<gamma> v) * (\<gamma> v), 0, 0]"
+    apply (auto simp: vector_smult_smult_minus[of "-\<gamma> v" "v" "\<gamma> v" "v * \<gamma> v" "0" "0" "1" "v * \<gamma> v" "\<gamma> v" "0" "0"]).
+  then have "(-\<gamma> v) \<odot>\<^bsub>real4_module\<^esub> (v \<odot>\<^bsub>real4_module\<^esub> vector [\<gamma> v, v * \<gamma> v, 0, 0] - vector [v * \<gamma> v, \<gamma> v, 0, 0])
+= vector [(-\<gamma> v) * v * (\<gamma> v) - (-\<gamma> v) * v * (\<gamma> v), (-\<gamma> v) * v * (v * (\<gamma> v)) - (-\<gamma> v) * (\<gamma> v), 0, 0]"
+    using real4_smult_one 
+    by simp
+  then have "(-\<gamma> v) \<odot>\<^bsub>real4_module\<^esub> (v \<odot>\<^bsub>real4_module\<^esub> vector [\<gamma> v, v * \<gamma> v, 0, 0] - vector [v * \<gamma> v, \<gamma> v, 0, 0])
+= vector [0, (-\<gamma> v) * (v * (v * (\<gamma> v)) - (\<gamma> v)), 0, 0]"
+    apply (auto simp: right_diff_distrib)
+    by (simp add: real4_smult_one vector_space_over_itself.scale_scale)
+  then have "(-\<gamma> v) \<odot>\<^bsub>real4_module\<^esub> (v \<odot>\<^bsub>real4_module\<^esub> vector [\<gamma> v, v * \<gamma> v, 0, 0] - vector [v * \<gamma> v, \<gamma> v, 0, 0])
+= vector [0, (-\<gamma> v) * ((\<gamma> v) * (v * v - 1)), 0, 0]"
+    apply (auto simp: right_diff_distrib)
+    by (simp add: mult.commute semiring_normalization_rules(19))
+  then have "(-\<gamma> v) \<odot>\<^bsub>real4_module\<^esub> (v \<odot>\<^bsub>real4_module\<^esub> vector [\<gamma> v, v * \<gamma> v, 0, 0] - vector [v * \<gamma> v, \<gamma> v, 0, 0])
+= vector [0, (-\<gamma> v) * (\<gamma> v) * (v * v - 1), 0, 0]" 
+    by (metis vector_space_over_itself.scale_scale)
+  then have "(-\<gamma> v) \<odot>\<^bsub>real4_module\<^esub> (v \<odot>\<^bsub>real4_module\<^esub> vector [\<gamma> v, v * \<gamma> v, 0, 0] - vector [v * \<gamma> v, \<gamma> v, 0, 0])
+= vector [0, -(\<gamma> v)\<^sup>2 * (v\<^sup>2 -1), 0, 0]"
+    apply (auto simp: power2_eq_square).
+  then have "(-\<gamma> v) \<odot>\<^bsub>real4_module\<^esub> (v \<odot>\<^bsub>real4_module\<^esub> vector [\<gamma> v, v * \<gamma> v, 0, 0] - vector [v * \<gamma> v, \<gamma> v, 0, 0])
+= vector [0, -1/(1 - v\<^sup>2) * (v\<^sup>2 -1), 0, 0]"
+    using assms lorentz_factor_square 
+    by simp 
+  thus "vector [0, 1, 0, 0] =
+    (-\<gamma> v) \<odot>\<^bsub>real4_module\<^esub> (v \<odot>\<^bsub>real4_module\<^esub> vector [\<gamma> v, v * \<gamma> v, 0, 0] - vector [v * \<gamma> v, \<gamma> v, 0, 0])"
+    by (smt assms(1) assms(2) mult_minus_right nonzero_eq_divide_eq power2_eq_1_iff)
+qed
+
 
 lemma span_vec_basis_subset_span_vec_basis':
   fixes v::"real"
